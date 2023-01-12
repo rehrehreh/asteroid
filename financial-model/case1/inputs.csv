@@ -1,0 +1,25 @@
+Name,varName,type,units,use,min,p10,p50,p90,max,numberDecimals
+# Any row in this sheet will be disregaurded as long as the Name variable begins with a "#"
+"# The types of variables are: numerical, categorical, "
+"# The use column is used to vary what value will be used in the simulation. The program will force the variable value to be the use column value."
+"# For example, specifying 'min' as the use variable will cause the program to only use the min value even if the variable type is randomize"
+# This is meant to be an easy way to force specific conditions for testing and it is used for discrete variables
+#
+#
+# Asteroid Mining Goals
+Produced Water per Delivery,waterGoal,numerical,kg,min,10000,,,,,0
+#
+#
+# Asteroid properties
+Asteroid Water Percent,waterPercent,numerical,f_water,randomize,0.03,0.9,0.15,0.2,0.25,3
+Asteroid Density,asteroidDensity,numerical,kg/m^3,randomize,1200,1250,1400,1500,1600,0
+#
+#
+# Excavation sizing calculations
+# Our assumption is that the main mass component of the excavation equipment is a metal or composite box used to contain asteroid Material
+# The mass of this box depends on the asteroid properties and the required amount of water
+# An additional mass factor is applied to the box calculated mass to determine the total mass of the excavation system
+Construction Material Density,excavationMaterialDensity,numerical,kg/m^3,randomize,1800,2000,2800,3200,3400,0
+Construction Material Thickness,excavationMaterialThickenss,numerical,m,randomize,0.002,0.00254,0.0035,0.004,0.0045,5
+Number of Scoops,excavationNumScoops,numerical,#,min,1,2,3,4,5,0
+Excavation System Mass Factor,excavationMassFactor,numerical,none,randomize,1.1,1.12,1.2,1.3,1.35,2
