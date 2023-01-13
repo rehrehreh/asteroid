@@ -1,4 +1,4 @@
-Name,varName,type,units,use,min,p10,p50,p90,max,numberDecimals
+Name,varName,type,units,use,varMin,p10,p50,p90,varMax,numberDecimals
 # Any row in this sheet will be disregaurded as long as the Name variable begins with a "#"
 "# The types of variables are: numerical, categorical, "
 "# The use column is used to vary what value will be used in the simulation. The program will force the variable value to be the use column value."
