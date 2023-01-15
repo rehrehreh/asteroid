@@ -3,14 +3,15 @@ import numpy as np
 import random
 from scipy.stats import norm
 
-global case
+global case, numYears
 case = 'case1'
+numYears = 25
 
 def readInputs(case):
     # read input file
     df_input=pd.read_csv(case+'/inputs.csv')
     # filter for names that start with a # - these are comments
-    df_input=df_input[df_input['Name'].str[0]!='#']
+    df_input=df_input[df_input['Name'].str[0]!='#'].reset_index(drop=True)
     # fill NaN of numeric columns
     numericCols=['varMin', 'p10','p50','p90','varMax','numberDecimals']
     df_input[numericCols]=df_input[numericCols].fillna(-1)
@@ -24,7 +25,9 @@ def readInputs(case):
     df_input= df_input.astype(dataTypeDict)
     return df_input
 
-def weibullDistribution(p10, p50, p90, varMin, varMax, number_of_samples):
+def weibullDistribution(input_list):
+    [p10, p50, p90, varMin, varMax] = input_list
+    number_of_samples = 1
     b_mark = ((float(p90) - float(p50)) / (float(p50) - float(p10)))
     samples = []
     for i in range(number_of_samples):
@@ -35,26 +38,28 @@ def weibullDistribution(p10, p50, p90, varMin, varMax, number_of_samples):
         else:
             sample = p50 + (p90 - p50)*((b_mark**factor - 1)/(b_mark - 1))
         sample=min(max(sample, varMin), varMax)
-        samples.append(sample)
-    return samples
+        #samples.append(sample)
+    return sample
 
 def defineInputData(df_input):
-    
-
-# varMin = 1100
-# p10_in = 1350
-# p50_in = 1450
-# p90_in = 1500
-# varMax = 2000
-# numberofsamples = 10000
-# data = weibullDistribution(p10_in, p50_in, p90_in, varMin, varMax, 1)
-# pd.DataFrame(data).hist(bins=50)
-
-# p10_out = np.percentile(data,10)
-# p50_out = np.percentile(data,50)
-# p90_out = np.percentile(data,90)
-
+    #check for duplicate vavriable names
+    if max(df_input['varName'].value_counts())>1:
+        raise ValueError("There are duplicate varNames")
+    # Create an input dataframe for number of years specified
+    df=pd.DataFrame(range(numYears), columns=['year'])
+    for row in range(len(df_input)):
+        use=df_input.loc[row,'use']
+        varName=df_input.loc[row, 'varName']
+        # Generate a random variable within the bounds
+        if use == 'randomize':
+            value = weibullDistribution(df_input.loc[row, ['p10', 'p50', 'p90', 'varMin', 'varMax']])
+        else:
+            value = df_input.loc[row, use]
+        value = round(value, df_input.loc[row, 'numberDecimals'])
+        df[varName] = value
+    return df
 
 
 
 df_input=readInputs(case)
+df = defineInputData(df_input)
