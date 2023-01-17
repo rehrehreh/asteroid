@@ -1,3 +1,4 @@
+# Running cashFlow Model
 import pandas as pd
 import numpy as np
 import random
@@ -6,6 +7,7 @@ from scipy.stats import norm
 global case, numYears
 case = 'case1'
 numYears = 25
+numTrials = 1
 
 def readInputs(case):
     # read input file
@@ -42,24 +44,50 @@ def weibullDistribution(input_list):
     return sample
 
 def defineInputData(df_input):
-    #check for duplicate vavriable names
+    #check for duplicate variable names
     if max(df_input['varName'].value_counts())>1:
         raise ValueError("There are duplicate varNames")
     # Create an input dataframe for number of years specified
-    df=pd.DataFrame(range(numYears), columns=['year'])
+    var_dict=dict()
     for row in range(len(df_input)):
         use=df_input.loc[row,'use']
+        varType = df_input.loc[row,'varType']
         varName=df_input.loc[row, 'varName']
+        
         # Generate a random variable within the bounds
-        if use == 'randomize':
-            value = weibullDistribution(df_input.loc[row, ['p10', 'p50', 'p90', 'varMin', 'varMax']])
-        else:
-            value = df_input.loc[row, use]
-        value = round(value, df_input.loc[row, 'numberDecimals'])
-        df[varName] = value
-    return df
+        if varType == 'numerical':
+            if use == 'randomize':
+                value = weibullDistribution(df_input.loc[row, ['p10', 'p50', 'p90', 'varMin', 'varMax']])
+            else:
+                value = df_input.loc[row, use]
+            value = round(value, df_input.loc[row, 'numberDecimals'])
+        
+        # generate a random value from the list provided
+        elif varType == 'categorical':
+            if use == 'randomize':
+                randomList = df_input.loc[row,'categorical'].split(',')
+                value = random.choice(randomList)
+            else:
+                value = df_input.loc[row, use]
+                
+        var_dict.update({varName: value})
+    return var_dict
 
+def excavationSystemMass(var):
+    # this function calculates the mass of the excavation system
+    # the size is related to the number of scoops, water percent, and the water goal
+    regolithNeeded = var['waterGoal']/var['waterPercent']
+    excavationVolume = regolithNeeded/var['excavationNumScoops']/var['asteroidDensity']
+    excavationSAtoVratio = var['excavationVolumeFactor']/excavationVolume**(1/3)
+    excavationSystemSA = excavationSAtoVratio*excavationVolume
+    excavationMass = var['excavationMaterialDensity'] * var['excavationMaterialThickness']*\
+        excavationSystemSA * var['excavationMassFactor']   
+    var.update({'excavationMass':round(excavationMass,0)})
+    var.update({'regolithNeeded':round(regolithNeeded,0)})
+    return 
 
 
 df_input=readInputs(case)
-df = defineInputData(df_input)
+for trial in range(numTrials):
+    var = defineInputData(df_input)
+    excavationSystemMass(var)
