@@ -3,20 +3,21 @@ import pandas as pd
 import numpy as np
 import random
 from scipy.stats import norm
+import matplotlib.pyplot as plt
 
 global case, numYears
 case = 'case1'
 numYears = 25
-numTrials = 1
+numTrials = 1000
 
 def readInputs(case):
     # read input file
-    df_input=pd.read_csv(case+'/inputs.csv')
+    input=pd.read_csv(case+'/inputs.csv')
     # filter for names that start with a # - these are comments
-    df_input=df_input[df_input['Name'].str[0]!='#'].reset_index(drop=True)
+    input=input[input['Name'].str[0]!='#'].reset_index(drop=True)
     # fill NaN of numeric columns
     numericCols=['varMin', 'p10','p50','p90','varMax','numberDecimals']
-    df_input[numericCols]=df_input[numericCols].fillna(-1)
+    input[numericCols]=input[numericCols].fillna(-1)
     # Assign data types
     dataTypeDict={'numberDecimals': int,
                 'varMin': float,
@@ -24,8 +25,8 @@ def readInputs(case):
                 'p50': float,
                 'p90': float,
                 'varMax': float}
-    df_input= df_input.astype(dataTypeDict)
-    return df_input
+    input= input.astype(dataTypeDict)
+    return input
 
 def weibullDistribution(input_list):
     [p10, p50, p90, varMin, varMax] = input_list
@@ -43,32 +44,32 @@ def weibullDistribution(input_list):
         #samples.append(sample)
     return sample
 
-def defineInputData(df_input):
+def defineInputData(input):
     #check for duplicate variable names
-    if max(df_input['varName'].value_counts())>1:
+    if max(input['varName'].value_counts())>1:
         raise ValueError("There are duplicate varNames")
     # Create an input dataframe for number of years specified
     var_dict=dict()
-    for row in range(len(df_input)):
-        use=df_input.loc[row,'use']
-        varType = df_input.loc[row,'varType']
-        varName=df_input.loc[row, 'varName']
+    for row in range(len(input)):
+        use=input.loc[row,'use']
+        varType = input.loc[row,'varType']
+        varName=input.loc[row, 'varName']
         
         # Generate a random variable within the bounds
         if varType == 'numerical':
             if use == 'randomize':
-                value = weibullDistribution(df_input.loc[row, ['p10', 'p50', 'p90', 'varMin', 'varMax']])
+                value = weibullDistribution(input.loc[row, ['p10', 'p50', 'p90', 'varMin', 'varMax']])
             else:
-                value = df_input.loc[row, use]
-            value = round(value, df_input.loc[row, 'numberDecimals'])
+                value = input.loc[row, use]
+            value = round(value, input.loc[row, 'numberDecimals'])
         
         # generate a random value from the list provided
         elif varType == 'categorical':
             if use == 'randomize':
-                randomList = df_input.loc[row,'categorical'].split(',')
+                randomList = input.loc[row,'categorical'].split(',')
                 value = random.choice(randomList)
             else:
-                value = df_input.loc[row, use]
+                value = input.loc[row, use]
                 
         var_dict.update({varName: value})
     return var_dict
@@ -87,7 +88,25 @@ def excavationSystemMass(var):
     return 
 
 
-df_input=readInputs(case)
+inputs = readInputs(case)
+outputs = pd.DataFrame()
 for trial in range(numTrials):
-    var = defineInputData(df_input)
+    var = defineInputData(inputs)
     excavationSystemMass(var)
+    outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
+
+
+### Graphing ###m
+# redo everything with the mean variable 
+# with the p10, mean, and p90 of the input variable
+# plot these as bar graphs, sorted from largest to least deviated
+# def tornado(output, outputVar, inputVars):
+#     axs[0, 0].set_title('Output: {} vs {}'.format(outputVar,''.join(inputVars,', ')), fontsize=fs)
+#     return
+
+# tornado(outputs, 'excavationMass',  ['waterPercent', 'excavationMaterialDensity'])
+
+outputs.plot.scatter('waterPercent','excavationMass')
+    
+    
+    
