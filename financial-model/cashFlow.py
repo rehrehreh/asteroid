@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 global case, numYears
 case = 'case1'
 numYears = 25
-numTrials = 1000
+numTrials = 10
 
 def readInputs(case):
     # read input file
@@ -44,32 +44,37 @@ def weibullDistribution(input_list):
         #samples.append(sample)
     return sample
 
-def defineInputData(input):
+def defineInputData(inputs, force=None, forceVar = None):
     #check for duplicate variable names
-    if max(input['varName'].value_counts())>1:
+    if max(inputs['varName'].value_counts())>1:
         raise ValueError("There are duplicate varNames")
     # Create an input dataframe for number of years specified
     var_dict=dict()
-    for row in range(len(input)):
-        use=input.loc[row,'use']
-        varType = input.loc[row,'varType']
-        varName=input.loc[row, 'varName']
-        
+    for row in range(len(inputs)):
+        varType = inputs.loc[row,'varType']
+        varName=inputs.loc[row, 'varName']
+        if force != None:
+            if forceVar == varName:
+                use = force
+            else: 
+                use = 'p50'
+        else:
+            use=inputs.loc[row,'use']
         # Generate a random variable within the bounds
         if varType == 'numerical':
             if use == 'randomize':
-                value = weibullDistribution(input.loc[row, ['p10', 'p50', 'p90', 'varMin', 'varMax']])
+                value = weibullDistribution(inputs.loc[row, ['p10', 'p50', 'p90', 'varMin', 'varMax']])
             else:
-                value = input.loc[row, use]
-            value = round(value, input.loc[row, 'numberDecimals'])
+                value = inputs.loc[row, use]
+            value = round(value, inputs.loc[row, 'numberDecimals'])
         
         # generate a random value from the list provided
         elif varType == 'categorical':
             if use == 'randomize':
-                randomList = input.loc[row,'categorical'].split(',')
+                randomList = inputs.loc[row,'categorical'].split(',')
                 value = random.choice(randomList)
             else:
-                value = input.loc[row, use]
+                value = inputs.loc[row, use]
                 
         var_dict.update({varName: value})
     return var_dict
@@ -87,6 +92,56 @@ def excavationSystemMass(var):
     var.update({'regolithNeeded':round(regolithNeeded,0)})
     return 
 
+def processingSystemMass(var):
+    return
+
+
+
+
+
+### Graphing ###
+def tornado(outputVar, inputs):
+    #remove categorical variables for now
+    df_inputs = inputs[inputs['varType']=='numerical'].reset_index(drop=True)
+    # create a dataframe to house the sensitivity values
+    senseCols = ['varMin', 'p10', 'p50', 'p90', 'varMax']
+    sensitivities = pd.DataFrame(columns=['varName'] + senseCols)
+    for row in range(len(df_inputs)):
+        # run though all of the calculations for the min, p10, p50, p90, and max value
+        varName = df_inputs.loc[row, 'varName']
+        sensitivities.loc[row,'varName'] =  varName
+        for sense in senseCols:
+            #copy running statements from the trial loop
+            # could put these in a for loop for single running eventually
+            varTest = defineInputData(inputs, force=sense, forceVar=varName)
+            excavationSystemMass(varTest)
+            sensitivities.loc[row,sense] = float(varTest[outputVar])
+    
+    for col in senseCols:
+        if col not in ['varName','p50']:
+            sensitivities[col] = sensitivities[col] - sensitivities['p50']
+
+    # ##ploting
+    sensitivities = sensitivities.sort_values(by=['varMax'])
+    #sensitivities = sensitivities[sensitivities]
+    fig, ax = plt.subplots(figsize=(10,0.75*len(df_inputs)))
+    ax.barh(sensitivities['varName'], sensitivities['varMin'] , align='center', color='firebrick', label='varMin')
+    ax.barh(sensitivities['varName'], sensitivities['p10'] , align='center', color='palevioletred', label='p10')
+    ax.barh(sensitivities['varName'], sensitivities['varMax'] , align='center', color='limegreen',label='varMax')
+    ax.barh(sensitivities['varName'], sensitivities['p90'] , align='center', color='yellowgreen', label='p90')
+    plt.axvline(x=0, color='black', linestyle='--')
+    ax.set_yticks(sensitivities['varName'].to_list())
+    plt.legend()
+    ax.invert_yaxis()  # labels read top-to-bottom
+    ax.set_xlabel(f'Change to {outputVar}')
+    meanVal = str(int(sensitivities['p50'].mean()))
+    ax.set_title(f'Mean {outputVar} is {meanVal}')
+    return sensitivities
+
+
+
+
+
 
 inputs = readInputs(case)
 outputs = pd.DataFrame()
@@ -94,19 +149,8 @@ for trial in range(numTrials):
     var = defineInputData(inputs)
     excavationSystemMass(var)
     outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
-
-
-### Graphing ###m
-# redo everything with the mean variable 
-# with the p10, mean, and p90 of the input variable
-# plot these as bar graphs, sorted from largest to least deviated
-# def tornado(output, outputVar, inputVars):
-#     axs[0, 0].set_title('Output: {} vs {}'.format(outputVar,''.join(inputVars,', ')), fontsize=fs)
-#     return
-
-# tornado(outputs, 'excavationMass',  ['waterPercent', 'excavationMaterialDensity'])
-
-outputs.plot.scatter('waterPercent','excavationMass')
     
+sensitivities = tornado('excavationMass', inputs)
+
     
     

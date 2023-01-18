@@ -1,6 +1,6 @@
 Name,varName,varType,units,use,varMin,p10,p50,p90,varMax,numberDecimals,categorical
 # Any row in this sheet will be disregaurded as long as the Name variable begins with a "#"
-# The types of variables are: numerical, categorical, time 
+"# The types of variables are: numerical, categorical, boolean" 
 # Right now there is no differentiation cause by the type variable
 #
 # The use column is used to vary what value will be used in the simulation. The program will force the variable value to be the use column value.
@@ -9,7 +9,7 @@ Name,varName,varType,units,use,varMin,p10,p50,p90,varMax,numberDecimals,categori
 #
 #
 # Asteroid Mining Goals
-Produced Water per Delivery,waterGoal,numerical,kg,varMin,1000,,,,,0,
+Produced Water per Delivery,waterGoal,numerical,kg,varMin,1000,1000,1000,1000,1000,0,
 #
 #
 # Asteroid properties
@@ -31,6 +31,10 @@ Excavation Shape,excavationShape,categorical,none,randomize,,,,,,,"square,cylind
 #
 #
 #
-# Research variables
-Rearch Start Year,tResearchStart,numerical,years,randomize,0,0.1,0.2,0.25,0.3,2,
-Rearch End Year,tResearchEnd,numerical,years,randomize,1,2,2.4,2.7,3.5,2,
+# Processing System mass and sizing
+#
+Asteroid Material Mean specific heat,asteroidCp,numerical,J/kg/K,randomize,800,950,1100,1300,1400,,
+Heating Source,processHeatingSource,categorical,none,randomize,,,,,,,"solar panels,solar thermal"
+Processing Time,processTime,numerical,days,randomize,10,15,30,45,60,,
+Processing Start Temperature,processStartTemp,numerical,C,randomize,250,275,300,325,350,,
+Processing End Temperature,processEndTemp,numerical,C,randomize,500,550,600,650,700,,
