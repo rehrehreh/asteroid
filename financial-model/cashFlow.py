@@ -87,14 +87,50 @@ def excavationSystemMass(var):
     excavationSAtoVratio = var['excavationVolumeFactor']/excavationVolume**(1/3)
     excavationSystemSA = excavationSAtoVratio*excavationVolume
     excavationMass = var['excavationMaterialDensity'] * var['excavationMaterialThickness']*\
-        excavationSystemSA * var['excavationMassFactor']   
+        excavationSystemSA * var['excavationMassFactor']
+    
+    var.update({'excavationVolume':round(excavationVolume,2)})
     var.update({'excavationMass':round(excavationMass,0)})
     var.update({'regolithNeeded':round(regolithNeeded,0)})
     return 
 
 def processingSystemMass(var):
+    # This function is used to calculate the amount of energy needed to convert the asteroid material to water
+    # It will then calculate the mass of the energy source and the processing equipment needed
+    thermalEnergyPerKg = var['asteroidCp'] * (var['processEndTemp'] - var['processStartTemp']) / 1000 # kj/kg
+    phaseChangePerKg = var['processEnthalpy'] / var['asteroidMW'] * 1000 #kJ/kg
+    totalEnergyPerKg = thermalEnergyPerKg + phaseChangePerKg #kJ/kg
+    totalEnergyPerBatch = totalEnergyPerKg * var['regolithNeeded'] / var['excavationNumScoops'] #kJ
+    powerPerBatch = totalEnergyPerBatch / var['processTime'] * (1/24) * (1/60) * (1/60) #kW
+    totalProcessingTime = var['processTime'] * var['excavationNumScoops'] # days
+
+    # Mass of energy supply
+    solarThermalRatio = 1 - var['processSolarPanelHeatRatio']
+    totalSolarThermalMass = powerPerBatch * solarThermalRatio / var['solarThermalEnergyDensity'] / var['solarThermalEfficiency'] / (1 / var['asteroidMaxSunDistance']**2)
+    totalSolarPanelMass = powerPerBatch * var['processSolarPanelHeatRatio'] / var['solarPanelEnergyDensity'] / var['solarPanelEfficiency'] / (1 / var['asteroidMaxSunDistance']**2)
+    totalPowerMass = totalSolarPanelMass + totalSolarThermalMass
+
+    # Mass of processing container
+    # Assuming the batch size is the same for both systems
+    processSAtoVRatio = var['processVolumeFactor']/var['excavationVolume']**(1/3)
+    processSystemSA = processSAtoVRatio * var['excavationVolume']
+    processContainerMass = var['processMaterialDensity'] * var['processMaterialThickness'] * processSystemSA * var['processMassFactor']
+    
+    totalProcessingMass = totalPowerMass + processContainerMass
+    var.update({'totalProcessingMass':round(totalProcessingMass,2)})
+    var.update({'powerPerBatch':round(powerPerBatch,3)})
+    var.update({'totalPowerMass':round(totalPowerMass,2)})
+    var.update({'totalEnergyPerBatch':round(totalEnergyPerBatch,2)})
+    var.update({'totalProcessingTime':round(totalProcessingTime,2)})
+    var.update({'processContainerMass':round(processContainerMass,2)})
+    var.update({'totalEnergyPerKg':round(totalEnergyPerKg,2)})
     return
 
+
+def runSim(var):
+    excavationSystemMass(var)
+    processingSystemMass(var)
+    return
 
 
 
@@ -114,17 +150,21 @@ def tornado(outputVar, inputs):
             #copy running statements from the trial loop
             # could put these in a for loop for single running eventually
             varTest = defineInputData(inputs, force=sense, forceVar=varName)
-            excavationSystemMass(varTest)
+            runSim(varTest)
             sensitivities.loc[row,sense] = float(varTest[outputVar])
     
+    sensitivities['sum'] = 0
     for col in senseCols:
         if col not in ['varName','p50']:
             sensitivities[col] = sensitivities[col] - sensitivities['p50']
+            sensitivities['sum']+=abs(sensitivities[col])
+    
 
     # ##ploting
     sensitivities = sensitivities.sort_values(by=['varMax'])
-    #sensitivities = sensitivities[sensitivities]
-    fig, ax = plt.subplots(figsize=(10,0.75*len(df_inputs)))
+    sensitivities = sensitivities[sensitivities['sum']!=0].reset_index(drop=True)
+    
+    fig, ax = plt.subplots(figsize=(10,0.75*len(sensitivities)))
     ax.barh(sensitivities['varName'], sensitivities['varMin'] , align='center', color='firebrick', label='varMin')
     ax.barh(sensitivities['varName'], sensitivities['p10'] , align='center', color='palevioletred', label='p10')
     ax.barh(sensitivities['varName'], sensitivities['varMax'] , align='center', color='limegreen',label='varMax')
@@ -134,9 +174,9 @@ def tornado(outputVar, inputs):
     plt.legend()
     ax.invert_yaxis()  # labels read top-to-bottom
     ax.set_xlabel(f'Change to {outputVar}')
-    meanVal = str(int(sensitivities['p50'].mean()))
+    meanVal = str(sensitivities['p50'].mean())
     ax.set_title(f'Mean {outputVar} is {meanVal}')
-    return sensitivities
+    return
 
 
 
@@ -147,10 +187,10 @@ inputs = readInputs(case)
 outputs = pd.DataFrame()
 for trial in range(numTrials):
     var = defineInputData(inputs)
-    excavationSystemMass(var)
+    runSim(var)
     outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
     
-sensitivities = tornado('excavationMass', inputs)
-
-    
+tornado('excavationMass', inputs)
+tornado('powerPerBatch', inputs)
+tornado('totalEnergyPerKg', inputs)    
     
