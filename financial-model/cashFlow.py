@@ -126,10 +126,15 @@ def processingSystemMass(var):
     var.update({'totalEnergyPerKg':round(totalEnergyPerKg,2)})
     return
 
+def summationVariables(var):
+    totalPayloadMass = var['totalProcessingMass'] + var['excavationMass']
+    var.update({'totalPayloadMass':round(totalPayloadMass,0)})
+    return
 
 def runSim(var):
     excavationSystemMass(var)
     processingSystemMass(var)
+    summationVariables(var)
     return
 
 
@@ -191,6 +196,7 @@ for trial in range(numTrials):
     outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
     
 tornado('excavationMass', inputs)
+tornado('totalEnergyPerKg', inputs)  
 tornado('powerPerBatch', inputs)
 tornado('totalEnergyPerKg', inputs)    
-    
+tornado('totalPayloadMass', inputs) 
