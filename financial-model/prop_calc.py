@@ -35,4 +35,3 @@ for i in range(max_iter):
     else: 
         break
 
-        

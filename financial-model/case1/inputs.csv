@@ -56,3 +56,14 @@ Processing Volume Factor,processVolumeFactor,numerical,m^-1,randomize,4,4.3,4.5,
 Processing System Mass Factor,processMassFactor,numerical,none,randomize,1.1,1.12,1.2,1.3,1.35,2,
 Processing Material Density,processMaterialDensity,numerical,kg/m^3,randomize,1800,2000,2800,3200,3400,0,
 Processing Material Thickness,processMaterialThickness,numerical,m,randomize,0.002,0.00254,0.0035,0.004,0.0045,5,
+#
+#
+#
+# Orbital consideration
+Engine ISP,engineISP,numerical,1,randomize,300,350,420,450,500,0
+DeltaV from GTO to Asteroid,deltaVtoAsteroid,numerical,km/s2,randomize,1,2,2.5,2.6,3,2
+DeltaV from Asteroid to EML1,deltaVtoEML1,numerical,km/s2,randomize,1,2,2.5,2.6,3,2
+# this next value will go away in future iterations. It is used to calculate the spacecraft dry mass
+Spacecraft Dry Mass Factor,spacecraftDryMassFactor,numerical,none,randomize,4,4.5,5,5.5,6,2
+# This is the ratio amount of return propellant we plan to harvest form the asteroid
+Propellant Ratio Harvested at Asteroid,asteroidPropellantRatio,numerical,none,randomize,0,.3,.5,.8,1,2
