@@ -139,6 +139,13 @@ def runSim(var):
 
 
 
+# The dry mass has to be assumed or iteratively calculated
+# The dry mass factors into the amount of propellant needed
+# which factors into the amount of asteroid material needed
+# Which factors into the excavation mass and processing mass
+# or...just assume time/numScoops increases instead of mass
+
+
 
 ### Graphing ###
 def tornado(outputVar, inputs):
