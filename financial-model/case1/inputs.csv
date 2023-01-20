@@ -44,7 +44,7 @@ Processing Reaction Enthalpy,processEnthalpy,numerical,kJ/mol,randomize,900,950,
 Asteroid Molecular Weight,asteroidMW,numerical,g/mol,p10,258.16,258.16,258.16,258.16,258.16,2
 # Heating can be done via solar panels or solar thermal Heating
 # The ratio below is the amount of heating that comes from Solar Panels
-Solar Panel Heat Ratio,processSolarPanelHeatRatio,numerical,none,p10,1,1,1,1,1,1,
+Solar Panel Heat Ratio,processSolarPanelHeatRatio,numerical,none,randomize,0,.1,.5,.9,1,1,
 Solar Panel Minimum Efficiency,solarPanelEfficiency,numerical,%,randomize,.2,.25,.35,.4,.45,2,
 Solar Panel Energy Density,solarPanelEnergyDensity,numerical,kW/kg,randomize,1,1.1,2,2.5,3,2
 Asteroid Max Radius from the Sun,asteroidMaxSunDistance,numerical,AU,randomize,1,1.2,1.5,2,2.5,2
