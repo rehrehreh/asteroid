@@ -4,11 +4,12 @@ import numpy as np
 import random
 from scipy.stats import norm
 import matplotlib.pyplot as plt
+from prop_calc import calculatePropellant
 
 global case, numYears
 case = 'case1'
 numYears = 25
-numTrials = 10
+numTrials = 1
 
 def readInputs(case):
     # read input file
@@ -82,16 +83,20 @@ def defineInputData(inputs, force=None, forceVar = None):
 def excavationSystemMass(var):
     # this function calculates the mass of the excavation system
     # the size is related to the number of scoops, water percent, and the water goal
-    regolithNeeded = var['waterGoal']/var['waterPercent']
+    if 'asteroidWaterNeeded' in var:
+        regolithNeeded = var['asteroidWaterNeeded']/var['waterPercent']
+    else:
+        regolithNeeded = var['waterGoal']/var['waterPercent']
     excavationVolume = regolithNeeded/var['excavationNumScoops']/var['asteroidDensity']
     excavationSAtoVratio = var['excavationVolumeFactor']/excavationVolume**(1/3)
     excavationSystemSA = excavationSAtoVratio*excavationVolume
-    excavationMass = var['excavationMaterialDensity'] * var['excavationMaterialThickness']*\
-        excavationSystemSA * var['excavationMassFactor']
-    
+    excavationMass = var['excavationMaterialDensity'] * var['excavationMaterialThickness'] * excavationSystemSA * var['excavationMassFactor']
+    totalExcavationTime = var['excavationNumScoops'] * var['excavationTime']
+
     var.update({'excavationVolume':round(excavationVolume,2)})
     var.update({'excavationMass':round(excavationMass,0)})
     var.update({'regolithNeeded':round(regolithNeeded,0)})
+    var.update({'totalExcavationTime':round(totalExcavationTime,2)})
     return 
 
 def processingSystemMass(var):
@@ -126,29 +131,73 @@ def processingSystemMass(var):
     var.update({'totalEnergyPerKg':round(totalEnergyPerKg,2)})
     return
 
+def calculateTotalPropellant(var):
+    isp = var['engineISP']
+    dV1 = var['deltaVtoAsteroid']
+    dV2 = var['deltaVtoEML1']
+    v_e = isp * 9.81 / 1000 
+    if 'totalPayloadMass' in var:
+        dryMass = var['totalPayloadMass'] * var['spacecraftDryMassFactor']
+    else:
+         dryMass = var['dryMassGuess'] * var['spacecraftDryMassFactor']
+    Ap = var['asteroidPropellantRatio']
+    massProp1Guess = 10
+    massProp2Guess = 20
+    massAsteroid = var['waterGoal']
+    maxIterations = 100
+    convergence = 0.01
+    for i in range(maxIterations):
+        massProp1, massProp2, diff_dV1, diff_dV2 = calculatePropellant(v_e, dryMass, dV1, dV2, massAsteroid, Ap, massProp1Guess, massProp2Guess)
+        if abs(diff_dV1) +abs(diff_dV2) > convergence:
+            massProp1Guess = massProp1Guess*(1+diff_dV1)
+            massProp2Guess = massProp2Guess*(1+diff_dV2)
+        else: 
+            break
+    totalPropellant = massProp1 + massProp2
+    asteroidWaterNeeded = var['waterGoal'] + massProp2
+    
+    var.update({'massPropToAsteroid':round(massProp1,0)})
+    var.update({'massPropToEML1':round(massProp2,0)})
+    var.update({'asteroidWaterNeeded':round(asteroidWaterNeeded,0)})
+    var.update({'totalPropellant':round(totalPropellant,0)})
+    return
+
 def summationVariables(var):
     totalPayloadMass = var['totalProcessingMass'] + var['excavationMass']
-    var.update({'totalPayloadMass':round(totalPayloadMass,0)})
+    totalStayDays = var['totalProcessingTime'] + var['excavationTime']
+    
+    var['totalPayloadMass'] = round(totalPayloadMass,0)
+    var['totalStayDays'] = round(totalStayDays,0)
+    
     return
 
 def runSim(var):
-    excavationSystemMass(var)
-    processingSystemMass(var)
-    summationVariables(var)
+    # these variables determine the maximum number of iterations and convergence minimum for the dry mass calculations
+    maxIterations = 100
+    convergence = 1 #kg
+    propGuess = 200
+    for iter in range(maxIterations):
+        if iter == 0:
+            calculateTotalPropellant(var)
+            excavationSystemMass(var)
+            processingSystemMass(var)
+            summationVariables(var)
+            propCheck = abs(propGuess - var['totalPropellant'])
+        else:
+            if propCheck > convergence:
+                propGuess = var['totalPropellant']
+                calculateTotalPropellant(var)
+                excavationSystemMass(var)
+                processingSystemMass(var)
+                summationVariables(var)
+            else:
+                break
+    # 
     return
 
 
-
-# The dry mass has to be assumed or iteratively calculated
-# The dry mass factors into the amount of propellant needed
-# which factors into the amount of asteroid material needed
-# Which factors into the excavation mass and processing mass
-# or...just assume time/numScoops increases instead of mass
-
-
-
 ### Graphing ###
-def tornado(outputVar, inputs):
+def tornado(outputVar, inputs, maxEffect):
     #remove categorical variables for now
     df_inputs = inputs[inputs['varType']=='numerical'].reset_index(drop=True)
     # create a dataframe to house the sensitivity values
@@ -174,7 +223,7 @@ def tornado(outputVar, inputs):
 
     # ##ploting
     sensitivities = sensitivities.sort_values(by=['varMax'])
-    sensitivities = sensitivities[sensitivities['sum']!=0].reset_index(drop=True)
+    sensitivities = sensitivities[sensitivities['sum']>=maxEffect].reset_index(drop=True)
     
     fig, ax = plt.subplots(figsize=(10,0.75*len(sensitivities)))
     ax.barh(sensitivities['varName'], sensitivities['varMin'] , align='center', color='firebrick', label='varMin')
@@ -202,8 +251,8 @@ for trial in range(numTrials):
     runSim(var)
     outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
     
-tornado('excavationMass', inputs)
-tornado('totalEnergyPerKg', inputs)  
-tornado('powerPerBatch', inputs)
-tornado('totalEnergyPerKg', inputs)    
-tornado('totalPayloadMass', inputs) 
+# tornado('excavationMass', inputs,20)
+# tornado('totalEnergyPerKg', inputs)  
+# tornado('powerPerBatch', inputs)
+# tornado('totalEnergyPerKg', inputs)    
+tornado('totalPropellant', inputs, 100) 
