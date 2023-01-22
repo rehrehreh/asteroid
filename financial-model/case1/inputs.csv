@@ -13,7 +13,7 @@ Produced Water per Delivery,waterGoal,numerical,kg,varMin,1000,1000,1000,1000,10
 #
 #
 # Asteroid properties
-Asteroid Water Percent,waterPercent,numerical,f_water,randomize,0.03,0.09,0.15,0.2,0.25,3,
+Asteroid Water Percent,waterPercent,numerical,f_water,randomize,0.1,0.12,0.15,0.2,0.25,3,
 Asteroid Density,asteroidDensity,numerical,kg/m^3,randomize,1200,1250,1400,1500,1600,0,
 #
 #
@@ -23,7 +23,7 @@ Asteroid Density,asteroidDensity,numerical,kg/m^3,randomize,1200,1250,1400,1500,
 # An additional mass factor is applied to the box calculated mass to determine the total mass of the excavation system
 Construction Material Density,excavationMaterialDensity,numerical,kg/m^3,randomize,1800,2000,2800,3200,3400,0,
 Construction Material Thickness,excavationMaterialThickness,numerical,m,randomize,0.002,0.00254,0.0035,0.004,0.0045,5,
-Number of Scoops,excavationNumScoops,numerical,#,randomize,1,2,3,4,5,0,
+Number of Scoops,excavationNumScoops,numerical,#,randomize,3,4,7,8,10,0,
 # the volume factor is divided by the volume^1/3 to caclulate the SA/V ratio
 Excavation Volume Factor,excavationVolumeFactor,numerical,m^-1,randomize,4,4.3,4.5,5,5.5,1,
 Excavation System Mass Factor,excavationMassFactor,numerical,none,randomize,1.1,1.12,1.2,1.3,1.35,2,

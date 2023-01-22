@@ -222,7 +222,7 @@ def tornado(outputVar, inputs, maxEffect):
     
 
     # ##ploting
-    sensitivities = sensitivities.sort_values(by=['varMax'])
+    sensitivities = sensitivities.sort_values(by=['sum'], ascending=False)
     sensitivities = sensitivities[sensitivities['sum']>=maxEffect].reset_index(drop=True)
     
     fig, ax = plt.subplots(figsize=(10,0.75*len(sensitivities)))
@@ -251,7 +251,7 @@ for trial in range(numTrials):
     runSim(var)
     outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
     
-# tornado('excavationMass', inputs,20)
+tornado('excavationMass', inputs,5)
 # tornado('totalEnergyPerKg', inputs)  
 # tornado('powerPerBatch', inputs)
 # tornado('totalEnergyPerKg', inputs)    
