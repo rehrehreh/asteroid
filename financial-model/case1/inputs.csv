@@ -9,7 +9,7 @@ Name,varName,varType,units,use,varMin,p10,p50,p90,varMax,numberDecimals,categori
 #
 #
 # Asteroid Mining Goals
-Produced Water per Delivery,waterGoal,numerical,kg,varMin,1000,1000,1000,1000,1000,0,
+Produced Water per Delivery,waterGoal,numerical,kg,varMin,900,950,1000,1050,1100,0,
 #
 #
 # Asteroid properties

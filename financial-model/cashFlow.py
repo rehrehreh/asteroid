@@ -9,7 +9,7 @@ from prop_calc import calculatePropellant
 global case, numYears
 case = 'case1'
 numYears = 25
-numTrials = 1
+numTrials = 2000
 
 def readInputs(case):
     # read input file
@@ -239,20 +239,36 @@ def tornado(outputVar, inputs, maxEffect):
     ax.set_title(f'Mean {outputVar} is {meanVal}')
     return
 
+def plottingOutputCorellations(outputs, x, y, ylim=None, xlim=None):
+    fig, ax = plt.subplots(figsize=(10,6))
+    ax.scatter(outputs[x], outputs[y])
+    ax.set_xlabel(x)
+    ax.set_ylabel(y)
+    if ylim!=None:
+        ax.set_ylim(ylim)
+    if xlim!=None:
+        ax.set_xlim(xlim)
 
+    return
 
 
 
 
 inputs = readInputs(case)
+
 outputs = pd.DataFrame()
 for trial in range(numTrials):
     var = defineInputData(inputs)
     runSim(var)
     outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
     
-tornado('excavationMass', inputs,5)
+
+plottingOutputCorellations(outputs, y='totalStayDays', x='powerPerBatch', xlim=[0,100])
+plottingOutputCorellations(outputs, y='totalStayDays', x='totalPayloadMass', xlim=[50,300])
+
+# tornado('excavationMass', inputs,5)
 # tornado('totalEnergyPerKg', inputs)  
 # tornado('powerPerBatch', inputs)
 # tornado('totalEnergyPerKg', inputs)    
-tornado('totalPropellant', inputs, 100) 
+# tornado('totalPropellant', inputs, 100) 
+tornado('totalPayloadMass', inputs, 5) 
