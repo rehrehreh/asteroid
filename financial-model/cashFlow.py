@@ -6,23 +6,23 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 from prop_calc import calculatePropellant
 
-global case, numYears
-case = 'case1'
-numYears = 25
-numTrials = 2000
+global cases
+cases = ['p-solar panel']
+numTrials = 1
 
-def readInputs(case):
+def readInputs(cases):
     # read common inputs
     common = pd.read_csv('common-inputs.csv')
     common = processInputs(common)
     # read input file
-    input=pd.read_csv(case+'/inputs.csv')
-    input = processInputs(input)
-    # combine these DFs, and keep specific inputs
-    combine = pd.concat([common, input])
+    combine = common.copy()
+    for case in cases:
+        input=pd.read_csv(case+'/inputs.csv')
+        input = processInputs(input)
+        combine = pd.concat([combine, input])
+    # combine these DFs, and keep the specific inputs
     combine = combine.drop_duplicates(subset=['varName'], keep='last').reset_index(drop=True)
     return combine
-
 
 def processInputs(input):
     input=input[input['Name'].str[0]!='#'].reset_index(drop=True)
@@ -147,9 +147,9 @@ def calculateTotalPropellant(var):
     dV2 = var['deltaVtoEML1']
     v_e = isp * 9.81 / 1000 
     if 'totalPayloadMass' in var:
-        dryMass = var['totalPayloadMass'] * var['spacecraftDryMassFactor']
+        dryMass = var['totalPayloadMass'] * var['spacecraftDryMassFactor'] * (1 + var['dryMassMargin'])
     else:
-         dryMass = var['dryMassGuess'] * var['spacecraftDryMassFactor']
+         dryMass = var['dryMassGuess'] * var['spacecraftDryMassFactor'] * (1 + var['dryMassMargin'])
     Ap = var['asteroidPropellantRatio']
     massProp1Guess = 10
     massProp2Guess = 20
@@ -166,10 +166,43 @@ def calculateTotalPropellant(var):
     totalPropellant = massProp1 + massProp2
     asteroidWaterNeeded = var['waterGoal'] + massProp2
     
+    var['dryMass'] = dryMass
     var.update({'massPropToAsteroid':round(massProp1,0)})
     var.update({'massPropToEML1':round(massProp2,0)})
     var.update({'asteroidWaterNeeded':round(asteroidWaterNeeded,0)})
     var.update({'totalPropellant':round(totalPropellant,0)})
+    return
+
+def calculateSpacecraftCost(var):
+    # var['structureCostCER'] = var['structureMass'] * var['cerStructure']
+    # # X1 is thermal weaight, X2 is spacecraft weight + payload weight
+    # var['thermalCostCER'] = var['thermalX1']**(var['cerThermalE1']) * var['cerThermalA1'] + var['cerThermalA2'] * var['thermalX1']**(var['cerThermalE2'])*var['thermalX2']**(var['cerThermalE3'])
+    # # X1 is EPS weight, X2 is BOL Power (W)
+    # X1 is spacecraft bus + payload total RDT&E cost
+    var['rdte_costCer_spacecraft'] = var['dryMass'] * var['cerDryMassA1']
+    var['rdte_costCer_iatX1'] = var['rdte_costCer_spacecraft'] 
+    var['rdte_costCer_iat'] = var['cerIATA0'] + var['cerIATA1'] * var['rdte_costCer_iatX1']
+    # same X1 as IAT, integration assembly and test
+    var['rdte_costCer_programLevelCostCER'] = var['cerProgramA1'] * var['rdte_costCer_iatX1'] **(var['cerProgramE1'])
+    
+    var['rdte_costCer_totalCost'] = var['rdte_costCer_programLevelCostCER'] + var['rdte_costCer_iat'] + var['rdte_costCer_spacecraft']
+    
+    #Theoretical First Unit Cost
+    var['tfu_costCer_spacecraft'] = var['dryMass'] * var['cerTFUDryMassA1']
+    var['tfu_costCer_iatX1'] = var['dryMass'] 
+    var['tfu_costCer_iat'] = var['cerTFUIATA1'] * var['tfu_costCer_iatX1']
+    
+    var['tfu_costCer_programX1'] = var['tfu_costCer_spacecraft'] + var['tfu_costCer_iat']
+    var['tfu_costCer_programLevelCostCER'] = var['cerTFUProgramA1'] * var['tfu_costCer_programX1']
+    
+    var['tfu_costCer_totalCost'] = var['tfu_costCer_programLevelCostCER'] + var['tfu_costCer_iat'] +var['tfu_costCer_spacecraft']
+    var['tfu_costCer_totalCost'] = var['tfu_costCer_totalCost'] * var['cerTFUTRLFactor']
+    
+    var['totalCost'] = var['tfu_costCer_totalCost'] + var['rdte_costCer_totalCost']
+    
+    var['rdte_costCer_totalCost'] =round(var['rdte_costCer_totalCost'],0)
+    var['tfu_costCer_totalCost'] =round(var['tfu_costCer_totalCost'],0)
+    var['totalCost'] =round(var['totalCost'],0)
     return
 
 def summationVariables(var):
@@ -202,12 +235,13 @@ def runSim(var):
                 summationVariables(var)
             else:
                 break
+    calculateSpacecraftCost(var)
     # 
     return
 
-
 ### Graphing ###
 def tornado(outputVar, inputs, maxEffect):
+    plt.rcParams.update({'font.size': 14})
     #remove categorical variables for now
     df_inputs = inputs[inputs['varType']=='numerical'].reset_index(drop=True)
     # create a dataframe to house the sensitivity values
@@ -266,21 +300,21 @@ def plottingOutputCorellations(outputs, x, y, ylim=None, xlim=None):
 ###############################################################################################################
 
 
-inputs = readInputs(case)
+inputs = readInputs(cases)
 
 outputs = pd.DataFrame()
 for trial in range(numTrials):
     var = defineInputData(inputs)
     runSim(var)
-    outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
+    outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index')])
     
 
-plottingOutputCorellations(outputs, y='totalStayDays', x='powerPerBatch', xlim=[0,100])
-plottingOutputCorellations(outputs, y='totalStayDays', x='totalPayloadMass', xlim=[50,300])
+# plottingOutputCorellations(outputs, y='totalStayDays', x='powerPerBatch', xlim=[0,100])
+# plottingOutputCorellations(outputs, y='totalStayDays', x='totalPayloadMass', xlim=[50,300])
 
 # tornado('excavationMass', inputs,5)
 # tornado('totalEnergyPerKg', inputs)  
 # tornado('powerPerBatch', inputs)
 # tornado('totalEnergyPerKg', inputs)    
 # tornado('totalPropellant', inputs, 100) 
-tornado('totalPayloadMass', inputs, 5) 
+tornado('tfu_costCer_totalCost', inputs, 1) 

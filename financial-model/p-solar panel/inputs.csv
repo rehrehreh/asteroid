@@ -1,0 +1,6 @@
+Name,varName,varType,units,use,varMin,p10,p50,p90,varMax,numberDecimals,categorical
+# Any row in this sheet will be disregaurded as long as the Name variable begins with a "#"
+Processing Time,processTime,numerical,days/batch,randomize,5,7,10,13,20,0,
+Solar Panel Heat Ratio,processSolarPanelHeatRatio,numerical,none,varMax,1,1,1,1,1,0,
+Solar Panel Minimum Efficiency,solarPanelEfficiency,numerical,%,randomize,.2,.25,.35,.4,.45,2,
+Solar Panel Energy Density,solarPanelEnergyDensity,numerical,kW/kg,randomize,1,1.1,2,2.5,3,2
