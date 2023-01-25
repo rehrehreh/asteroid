@@ -12,9 +12,19 @@ numYears = 25
 numTrials = 2000
 
 def readInputs(case):
+    # read common inputs
+    common = pd.read_csv('common-inputs.csv')
+    common = processInputs(common)
     # read input file
     input=pd.read_csv(case+'/inputs.csv')
-    # filter for names that start with a # - these are comments
+    input = processInputs(input)
+    # combine these DFs, and keep specific inputs
+    combine = pd.concat([common, input])
+    combine = combine.drop_duplicates(subset=['varName'], keep='last').reset_index(drop=True)
+    return combine
+
+
+def processInputs(input):
     input=input[input['Name'].str[0]!='#'].reset_index(drop=True)
     # fill NaN of numeric columns
     numericCols=['varMin', 'p10','p50','p90','varMax','numberDecimals']
@@ -252,6 +262,8 @@ def plottingOutputCorellations(outputs, x, y, ylim=None, xlim=None):
     return
 
 
+###################################################################################################################
+###############################################################################################################
 
 
 inputs = readInputs(case)
