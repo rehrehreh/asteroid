@@ -8,17 +8,6 @@ import math
 import pandas as pd
 import matplotlib.pyplot as plt
  
-# ISP = 350
-# v_e = ISP * 9.81 / 1000 
-# m_dry=500
-# dV1=2
-# dV2=2
-# m_asteroid=1000
-# m_guess_1=100
-# m_guess_2=100
-# # This is the amount of propellant harvested from the asteroid
-# # 1 corresponds to 100% propellant of the return prop comes from the asteroid
-# Ap=1
 
 
 
@@ -35,7 +24,22 @@ def calculatePropellant(v_e,m_dry,dV1,dV2,m_asteroid,Ap,m_guess_1, m_guess_2):
 
 
 
-# # 
+
+
+# ISP = 350
+# v_e = ISP * 9.81 / 1000 
+# m_dry=515
+# dV1=2
+# dV2=2
+# m_asteroid=1000
+# m_guess_1=100
+# m_guess_2=100
+# # This is the amount of propellant harvested from the asteroid
+# # 1 corresponds to 100% propellant of the return prop comes from the asteroid
+# Ap=1
+
+
+# # # 
 # max_iter = 1000
 # results = []
 # for Ap in range(0,100):
@@ -51,15 +55,17 @@ def calculatePropellant(v_e,m_dry,dV1,dV2,m_asteroid,Ap,m_guess_1, m_guess_2):
 
 
 # df = pd.DataFrame(results, columns=['Ap', 'propToAsteroid', 'propToEML'])
-# df['launchMass'] = df['propToAsteroid'] + df['propToEML'] + m_dry 
+# df['launchedPropellant'] = df['propToAsteroid'] + df['propToEML']*(1-df['Ap'])
 
 
 # # Graphing # 
 
-# fig, ax = plt.subplots(figsize=(12,6))
+# fig, ax = plt.subplots(figsize=(12,8))
+# plt.rcParams.update({'font.size': 16})
 # ax.plot(df['Ap']*100, df['propToAsteroid'], label='propToAsteroid')
 # ax.plot(df['Ap']*100, df['propToEML'], label='propToEML1')
-# plt.axhline(y=m_asteroid, color='black', linestyle='--', label='massAsteroid')
+# ax.plot(df['Ap']*100, df['launchedPropellant'], label='TotalLaunchedProp', linewidth=5)
+# plt.axhline(y=m_asteroid, color='black', linestyle='--', label='AsteroidMaterialReturned')
 # ax.set_xlabel('Percent of Return propellant harvested from asteroid (%)')
 # ax.set_ylabel('Propellant Needed (kg)')
 # ax.legend()

@@ -241,7 +241,7 @@ def runSim(var):
 
 ### Graphing ###
 def tornado(outputVar, inputs, maxEffect):
-    plt.rcParams.update({'font.size': 14})
+    plt.rcParams.update({'font.size': 16})
     #remove categorical variables for now
     df_inputs = inputs[inputs['varType']=='numerical'].reset_index(drop=True)
     # create a dataframe to house the sensitivity values
@@ -312,9 +312,9 @@ for trial in range(numTrials):
 # plottingOutputCorellations(outputs, y='totalStayDays', x='powerPerBatch', xlim=[0,100])
 # plottingOutputCorellations(outputs, y='totalStayDays', x='totalPayloadMass', xlim=[50,300])
 
-# tornado('excavationMass', inputs,5)
+tornado('dryMass', inputs,5)
 # tornado('totalEnergyPerKg', inputs)  
 # tornado('powerPerBatch', inputs)
 # tornado('totalEnergyPerKg', inputs)    
 # tornado('totalPropellant', inputs, 100) 
-tornado('tfu_costCer_totalCost', inputs, 1) 
+# tornado('tfu_costCer_totalCost', inputs, 1) 

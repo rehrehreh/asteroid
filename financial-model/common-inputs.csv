@@ -54,7 +54,8 @@ Solar Thermal Minimum Efficiency,solarThermalEfficiency,numerical,%,randomize,0.
 Solar Thermal Energy Density,solarThermalEnergyDensity,numerical,kW/kg,randomize,2,3,4,5,6,1,
 # the volume factor is divided by the volume^1/3 to caclulate the SA/V ratio
 Processing Volume Factor,processVolumeFactor,numerical,m^-1,randomize,4,4.3,4.5,5,5.5,1,
-Processing System Mass Factor,processMassFactor,numerical,none,randomize,1.1,1.12,1.2,1.3,1.35,2,
+"# Processing System Mass Factor,processMassFactor,numerical,none,randomize,1.1,1.12,1.2,1.3,1.35,2,"
+Processing System Mass Factor,processMassFactor,numerical,none,p10,0.2,0.3,0.4,0.5,0.6,2,
 Processing Material Density,processMaterialDensity,numerical,kg/m^3,randomize,1800,2000,2800,3200,3400,0,
 Processing Material Thickness,processMaterialThickness,numerical,m,randomize,0.002,0.00254,0.0035,0.004,0.0045,5,
 #
