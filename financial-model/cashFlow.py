@@ -145,7 +145,7 @@ def spacecraftPowerCalculation(var):
     return
 
 def spacecraftThermalCalculation(var):
-    var['spacecraftSurfaceArea'] = (var['processSystemSA'] + var['excavationSystemSA']) * var['spacecraftSAFactor']
+    var['spacecraftSurfaceArea'] = (var['processSystemSA'] + var['excavationSystemSA'] + var['tankSA']) * var['spacecraftSAFactor']
     var['massMLI'] = var['spacecraftSurfaceArea'] * var['mliDensity']
     # var['massMLI'] = 5 
 
@@ -158,6 +158,53 @@ def spacecraftCommandAndDataHandlingCalculation(var):
     var['massCDH'] = var['cdhMass']
     return
 
+def spacecraftGuidanceAndNavigationCalculation(var):
+    var['massGNC'] = var['gncMass']
+    return
+
+def spacecraftCommunicationsCalculation(var):
+    var['massComms'] = var['commMass']
+    return
+
+def spacecraftAttitudeControlCalculation(var):
+    var['massAtt'] = var['attMass']
+    return
+
+def spacecraftPropulsionCalulation(var):
+    if 'totalPropellant' in var:
+        totalPropellant = var['totalPropellant']
+    else:
+        totalPropellant = 200 #kg
+    var['propVolume'] = totalPropellant / var['propDensity']
+    var['tankSA'] = var['tankVolumeFactor'] / var['propVolume']**(1/3)
+    var['massTank'] = var['tankPressurantMassFactor'] * (var['tankSA'] * var['tankMaterialThickness'] * var['propTankDensity'])
+    var['massEngine'] = var['engineMass']
+    return
+
+def summationVariables(var):
+    var['totalPayloadMass'] = var['totalProcessingMass'] + var['excavationMass']
+    var['totalStayDays'] = var['totalProcessingTime'] + var['excavationTime']
+    var['dryMass'] = var['totalProcessingMass'] + var['excavationMass'] + var['baseSolarPanelMass'] + var['cdhMass'] +  var['massRadiator'] + var['massMLI'] + var['massGNC'] + var['massEngine'] + var['massTank'] + var['commMass'] + var['massAtt']
+    var['dryMass']  = var['dryMass'] * (1 + var['structureDryMassFactor'] + var['dryMassMargin'])
+    return
+
+def simOrder(var):
+    calculateTotalPropellant(var)
+    excavationSystemMass(var)
+    processingSystemMass(var)
+    spacecraftPowerCalculation(var)
+    spacecraftPropulsionCalulation(var)
+    spacecraftGuidanceAndNavigationCalculation(var)
+    spacecraftThermalCalculation(var)
+    spacecraftAttitudeControlCalculation(var)
+    spacecraftCommunicationsCalculation(var)
+    spacecraftCommandAndDataHandlingCalculation(var)
+    summationVariables(var)
+    return
+
+
+
+
 def calculateTotalPropellant(var):
     isp = var['engineISP']
     dV1 = var['deltaVtoAsteroid']
@@ -169,8 +216,8 @@ def calculateTotalPropellant(var):
         dryMass = var['dryMass']
     
     Ap = var['asteroidPropellantRatio']
-    massProp1Guess = 100
-    massProp2Guess = 200
+    massProp1Guess = 1
+    massProp2Guess = 2
     massAsteroid = var['waterGoal']
     maxIterations = 100
     convergence = 0.01
@@ -181,13 +228,14 @@ def calculateTotalPropellant(var):
             massProp2Guess = massProp2Guess*(1+diff_dV2)
         else: 
             break
-    totalPropellant = massProp1 + massProp2
-    asteroidWaterNeeded = var['waterGoal'] + massProp2
+    var['totalPropellant'] = massProp1 + massProp2 
+    var['launchedPropellant'] = massProp1 + (1- var['asteroidPropellantRatio']) * massProp2
+    var['asteroidWaterNeeded'] = var['waterGoal'] + massProp2 *(var['asteroidPropellantRatio'])
+    
+    var['netPropellant'] = var['waterGoal'] - var['launchedPropellant']
     
     var.update({'massPropToAsteroid':round(massProp1,0)})
     var.update({'massPropToEML1':round(massProp2,0)})
-    var.update({'asteroidWaterNeeded':round(asteroidWaterNeeded,0)})
-    var.update({'totalPropellant':round(totalPropellant,0)})
     return
 
 
@@ -221,14 +269,14 @@ def calculateSpacecraftCost(var):
     var['rdte_costCer_totalCost'] =round(var['rdte_costCer_totalCost'],0)
     var['tfu_costCer_totalCost'] =round(var['tfu_costCer_totalCost'],0)
     var['totalCost'] =round(var['totalCost'],0)
+    var['costPerKgWater'] = var['totalCost'] / var['waterGoal']
     return
 
-def summationVariables(var):
-    var['totalPayloadMass'] = var['totalProcessingMass'] + var['excavationMass']
-    var['totalStayDays'] = var['totalProcessingTime'] + var['excavationTime']
-    var['dryMass'] = var['totalProcessingMass'] + var['excavationMass'] + var['baseSolarPanelMass'] + var['cdhMass'] +  var['massRadiator'] + var['massMLI']   
-    return
 
+
+
+    
+    
 def runSim(var):
     # these variables determine the maximum number of iterations and convergence minimum for the dry mass calculations
     maxIterations = 100
@@ -236,24 +284,12 @@ def runSim(var):
     propGuess = 200
     for iter in range(maxIterations):
         if iter == 0:
-            calculateTotalPropellant(var)
-            excavationSystemMass(var)
-            processingSystemMass(var)
-            spacecraftPowerCalculation(var)
-            spacecraftThermalCalculation(var)
-            spacecraftCommandAndDataHandlingCalculation(var)
-            summationVariables(var)
+            simOrder(var)
             propCheck = abs(propGuess - var['totalPropellant'])
         else:
             if propCheck > convergence:
                 propGuess = var['totalPropellant']
-                calculateTotalPropellant(var)
-                excavationSystemMass(var)
-                processingSystemMass(var)
-                spacecraftPowerCalculation(var)
-                spacecraftThermalCalculation(var)
-                spacecraftCommandAndDataHandlingCalculation(var)
-                summationVariables(var)
+                simOrder(var)
             else:
                 break
     calculateSpacecraftCost(var)
@@ -300,8 +336,8 @@ def tornado(outputVar, inputs, maxEffect):
     plt.legend()
     ax.invert_yaxis()  # labels read top-to-bottom
     ax.set_xlabel(f'Change to {outputVar}')
-    meanVal = str(sensitivities['p50'].mean())
-    ax.set_title(f'Mean {outputVar} is {meanVal}')
+    medianVal = str(sensitivities['p50'].median())
+    ax.set_title(f'Median {outputVar} is {medianVal}')
     return
 
 def plottingOutputCorellations(outputs, x, y, ylim=None, xlim=None):
@@ -313,29 +349,57 @@ def plottingOutputCorellations(outputs, x, y, ylim=None, xlim=None):
         ax.set_ylim(ylim)
     if xlim!=None:
         ax.set_xlim(xlim)
-
+    # ax.plot(np.unique(outputs[x]), np.poly1d(np.polyfit(outputs[x], outputs[y], 1))(np.unique(outputs[x])), color='r')
     return
+
+def singleVariableRange(inputs,inputVar,varRangeMin,varRangeMax,factor=1):
+    outputs = pd.DataFrame()
+    for a in range(int(varRangeMin * factor), int(varRangeMax * factor)):
+        a_in = a / factor
+        var = defineInputData(inputs, force = 'Yes')
+        var[inputVar] = a_in
+        runSim(var)
+        outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
+    
+    return outputs
+
 
 
 ###################################################################################################################
 ###################################################################################################################
 
 cases = ['p-solar panel']
-numTrials = 1
+
 
 inputs = readInputs(cases)
-
 outputs = pd.DataFrame()
-for trial in range(numTrials):
-    var = defineInputData(inputs)
-    runSim(var)
-    outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
-    
+
+
+## Run a monte Carlo
+# numTrials = 1
+# for trial in range(numTrials):
+#     var = defineInputData(inputs)
+#     runSim(var)
+#     #sanity check for results
+#     if var['totalPayloadMass']<2000:
+#         outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
+
+
+## run a asingle variable run
+# outputs = singleVariableRange(inputs,'waterGoal', 1, 2000, .1)
+
+
+
+
+
+# plottingOutputCorellations(outputs, y='dryMass', x='waterGoal', xlim=[0,2000])
+# plottingOutputCorellations(outputs, y='netPropellant', x='waterGoal', xlim=[0,2000], ylim=[-500,800])
+
 
 # plottingOutputCorellations(outputs, y='totalStayDays', x='powerPerBatch', xlim=[0,100])
-#plottingOutputCorellations(outputs, y='totalStayDays', x='totalCost', xlim=[0,1.5e6])
+# plottingOutputCorellations(outputs, y='totalStayDays', x='totalCost', xlim=[0,1.5e6])
 
-tornado('dryMass', inputs,5)
+tornado('costPerKgWater', inputs,20)
 # tornado('totalEnergyPerKg', inputs)  
 # tornado('powerPerBatch', inputs)
 # tornado('totalEnergyPerKg', inputs)    

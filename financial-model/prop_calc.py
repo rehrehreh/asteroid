@@ -26,9 +26,9 @@ def calculatePropellant(v_e,m_dry,dV1,dV2,m_asteroid,Ap,m_guess_1, m_guess_2):
 
 
 
-# ISP = 450
+# ISP = 420
 # v_e = ISP * 9.81 / 1000 
-# m_dry=500
+# m_dry=900
 # dV1=2.5
 # dV2=2.5
 # m_asteroid=1000
@@ -42,7 +42,7 @@ def calculatePropellant(v_e,m_dry,dV1,dV2,m_asteroid,Ap,m_guess_1, m_guess_2):
 # # # 
 # max_iter = 1000
 # results = []
-# for m in range(200,800):
+# for m in range(200,1200):
 #     for i in range(max_iter):
 #         m_prop_1, m_prop_2, diff_dV1, diff_dV2 = calculatePropellant(v_e,m,dV1,dV2,m_asteroid,Ap,m_guess_1, m_guess_2)
 #         if abs(diff_dV1) +abs(diff_dV2) > 0.0001:

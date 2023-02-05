@@ -9,7 +9,7 @@ Name,varName,varType,units,use,varMin,p10,p50,p90,varMax,numberDecimals,categori
 #
 #
 # Asteroid Mining Goals
-Produced Water per Delivery,waterGoal,numerical,kg,varMin,900,950,1000,1050,1100,0,
+Produced Water per Delivery,waterGoal,numerical,kg,randomize,800,900,1000,1100,1200,0,
 Spacecraft Design Years,designYears,numerical,years,varMin,3,4,5,6,7,1
 #
 #
@@ -70,19 +70,32 @@ Engine ISP,engineISP,numerical,1,randomize,300,350,420,450,500,0,
 DeltaV from GTO to Asteroid,deltaVtoAsteroid,numerical,km/s2,randomize,1,2,2.5,2.6,3,2,
 DeltaV from Asteroid to EML1,deltaVtoEML1,numerical,km/s2,randomize,1,2,2.5,2.6,3,2,
 # This is the ratio amount of return propellant we plan to harvest form the asteroid
-Propellant Ratio Harvested at Asteroid,asteroidPropellantRatio,numerical,none,varMax,0,.3,.5,.8,1,2,
+Propellant Ratio Harvested at Asteroid,asteroidPropellantRatio,numerical,none,varMax,1,1,1,1,1,0,
 Spacecraft Dry Mass initial guess,dryMassGuess,numerical,kg,p10,400,400,400,400,400,0,
 #
 #
 #
 # SMAD Subsystems
-Base Spacecraft Power,spacecraftBasePower,numerical,kW,randomize,0.04,0.05,0.06,0.07,0.08,3
+Base Spacecraft Power,spacecraftBasePower,numerical,kW,randomize,0.6,0.7,.8,.9,1,3
 Command and Data Handling Mass,cdhMass,numerical,kg,randomize,8,9,10,11,12,1
 MLI Density,mliDensity,numerical,kg/m2,randomize,0.6,0.7,0.73,0.8,0.82,2
 Radiator Panel Density,radiatorDensity,numerical,kg/m2,randomize,3,3.3,3.5,3.8,4,2
 Radiation Power,radiationPower,nunerical,kW,randomize,0.3,.35,.4,.42,.45,2
 Heat Rejection Temperature,radiationRejectionTemperature,numerical,K,randomize,311,313,315,317,319,1
-Spacecraft Surface Area factor as payload,spacecraftSAFactor,numerical,none,randomize,0.2,0.25,0.3,0.32,0.33,2
+Spacecraft Surface Area Factor,spacecraftSAFactor,numerical,none,randomize,0.2,0.25,0.3,0.32,0.33,2
+Structures Dry Mass Factor,structureDryMassFactor,numerical,none,randomize,.15,.2,.22,.25,.27,3,
+Guidance and Navigation Mass,gncMass,numerical,kg,randomize,15,20,25,30,35,1
+Propellant Tank Density,propTankDensity,numerical,kg/m3,randomize,1800,2000,2800,3200,3400,0,
+# Assuming monopropellant
+Number of Tanks,tankNumber,numerical,none,varMin,1,1,1,1,1,0
+Tank Pressurant Mass Factor,tankPressurantMassFactor,numerical,none,randomize,1.05,1.08,1.1,1.12,1.15,2
+Tank Material Thickness,tankMaterialThickness,numerical,m,randomize,0.002,0.00254,0.0035,0.004,0.0045,5,
+# the volume factor is divided by the volume^1/3 to caclulate the SA/V ratio
+Tank Volume Factor,tankVolumeFactor,numerical,m^-1,randomize,4,4.3,4.5,5,5.5,1,
+Propellant Density,propDensity,numerical,kg/m3,randomize,0.8,0.9,1,1.1,1.2,2
+Engine Mass,engineMass,numerical,kg,randomize,20,30,40,45,50,1
+Communication Mass,commMass,numerical,kg,randomize,25,20,22,25,27,1
+Attitude Control Mass,attMass,numerical,kg,randomize,43,45,55,65,75,1
 #
 # SMAD Correlations for Mass
 # Percent of dry mass that is the payload
