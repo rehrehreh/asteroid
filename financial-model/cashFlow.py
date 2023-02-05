@@ -7,8 +7,7 @@ import matplotlib.pyplot as plt
 from prop_calc import calculatePropellant
 
 global cases
-cases = ['p-solar panel']
-numTrials = 1
+
 
 def readInputs(cases):
     # read common inputs
@@ -99,8 +98,8 @@ def excavationSystemMass(var):
         regolithNeeded = var['waterGoal']/var['waterPercent']
     excavationVolume = regolithNeeded/var['excavationNumScoops']/var['asteroidDensity']
     excavationSAtoVratio = var['excavationVolumeFactor']/excavationVolume**(1/3)
-    excavationSystemSA = excavationSAtoVratio*excavationVolume
-    excavationMass = var['excavationMaterialDensity'] * var['excavationMaterialThickness'] * excavationSystemSA * var['excavationMassFactor']
+    var['excavationSystemSA'] = excavationSAtoVratio*excavationVolume
+    excavationMass = var['excavationMaterialDensity'] * var['excavationMaterialThickness'] * var['excavationSystemSA'] * var['excavationMassFactor']
     totalExcavationTime = var['excavationNumScoops'] * var['excavationTime']
 
     var.update({'excavationVolume':round(excavationVolume,2)})
@@ -122,14 +121,14 @@ def processingSystemMass(var):
     # Mass of energy supply
     solarThermalRatio = 1 - var['processSolarPanelHeatRatio']
     totalSolarThermalMass = powerPerBatch * solarThermalRatio / var['solarThermalEnergyDensity'] / var['solarThermalEfficiency'] / (1 / var['asteroidMaxSunDistance']**2)
-    totalSolarPanelMass = powerPerBatch * var['processSolarPanelHeatRatio'] / var['solarPanelEnergyDensity'] / var['solarPanelEfficiency'] / (1 / var['asteroidMaxSunDistance']**2)
+    totalSolarPanelMass = powerPerBatch * var['processSolarPanelHeatRatio'] / var['solarPanelEnergyDensity'] / var['solarPanelEfficiency'] / (1 / var['asteroidMaxSunDistance']**2) / (1-var['solarAnnualDegradation']/100)**(var['designYears'])
     totalPowerMass = totalSolarPanelMass + totalSolarThermalMass
 
     # Mass of processing container
     # Assuming the batch size is the same for both systems
     processSAtoVRatio = var['processVolumeFactor']/var['excavationVolume']**(1/3)
-    processSystemSA = processSAtoVRatio * var['excavationVolume']
-    processContainerMass = var['processMaterialDensity'] * var['processMaterialThickness'] * processSystemSA * var['processMassFactor']
+    var['processSystemSA'] = processSAtoVRatio * var['excavationVolume']
+    processContainerMass = var['processMaterialDensity'] * var['processMaterialThickness'] * var['processSystemSA'] * var['processMassFactor']
     
     totalProcessingMass = totalPowerMass + processContainerMass
     var.update({'totalProcessingMass':round(totalProcessingMass,2)})
@@ -141,18 +140,37 @@ def processingSystemMass(var):
     var.update({'totalEnergyPerKg':round(totalEnergyPerKg,2)})
     return
 
+def spacecraftPowerCalculation(var):
+    var['baseSolarPanelMass'] = var['spacecraftBasePower'] * var['solarPanelEnergyDensity'] / (1 / var['asteroidMaxSunDistance']**2) / (1-var['solarAnnualDegradation']/100)**(var['designYears'])
+    return
+
+def spacecraftThermalCalculation(var):
+    var['spacecraftSurfaceArea'] = (var['processSystemSA'] + var['excavationSystemSA']) * var['spacecraftSAFactor']
+    var['massMLI'] = var['spacecraftSurfaceArea'] * var['mliDensity']
+    # var['massMLI'] = 5 
+
+    var['thermalLoad'] = var['radiationPower']
+    var['radiatorArea'] = var['thermalLoad'] * 1000 / (5.67e-8 * var['radiationRejectionTemperature']**4)
+    var['massRadiator'] = var['radiatorArea'] * var['radiatorDensity']
+    return
+
+def spacecraftCommandAndDataHandlingCalculation(var):
+    var['massCDH'] = var['cdhMass']
+    return
+
 def calculateTotalPropellant(var):
     isp = var['engineISP']
     dV1 = var['deltaVtoAsteroid']
     dV2 = var['deltaVtoEML1']
     v_e = isp * 9.81 / 1000 
-    if 'totalPayloadMass' in var:
-        dryMass = var['totalPayloadMass'] * var['spacecraftDryMassFactor'] * (1 + var['dryMassMargin'])
-    else:
+    if 'dryMass' not in var:
          dryMass = var['dryMassGuess'] * var['spacecraftDryMassFactor'] * (1 + var['dryMassMargin'])
+    else: 
+        dryMass = var['dryMass']
+    
     Ap = var['asteroidPropellantRatio']
-    massProp1Guess = 10
-    massProp2Guess = 20
+    massProp1Guess = 100
+    massProp2Guess = 200
     massAsteroid = var['waterGoal']
     maxIterations = 100
     convergence = 0.01
@@ -166,12 +184,12 @@ def calculateTotalPropellant(var):
     totalPropellant = massProp1 + massProp2
     asteroidWaterNeeded = var['waterGoal'] + massProp2
     
-    var['dryMass'] = dryMass
     var.update({'massPropToAsteroid':round(massProp1,0)})
     var.update({'massPropToEML1':round(massProp2,0)})
     var.update({'asteroidWaterNeeded':round(asteroidWaterNeeded,0)})
     var.update({'totalPropellant':round(totalPropellant,0)})
     return
+
 
 def calculateSpacecraftCost(var):
     # var['structureCostCER'] = var['structureMass'] * var['cerStructure']
@@ -206,12 +224,9 @@ def calculateSpacecraftCost(var):
     return
 
 def summationVariables(var):
-    totalPayloadMass = var['totalProcessingMass'] + var['excavationMass']
-    totalStayDays = var['totalProcessingTime'] + var['excavationTime']
-    
-    var['totalPayloadMass'] = round(totalPayloadMass,0)
-    var['totalStayDays'] = round(totalStayDays,0)
-    
+    var['totalPayloadMass'] = var['totalProcessingMass'] + var['excavationMass']
+    var['totalStayDays'] = var['totalProcessingTime'] + var['excavationTime']
+    var['dryMass'] = var['totalProcessingMass'] + var['excavationMass'] + var['baseSolarPanelMass'] + var['cdhMass'] +  var['massRadiator'] + var['massMLI']   
     return
 
 def runSim(var):
@@ -224,6 +239,9 @@ def runSim(var):
             calculateTotalPropellant(var)
             excavationSystemMass(var)
             processingSystemMass(var)
+            spacecraftPowerCalculation(var)
+            spacecraftThermalCalculation(var)
+            spacecraftCommandAndDataHandlingCalculation(var)
             summationVariables(var)
             propCheck = abs(propGuess - var['totalPropellant'])
         else:
@@ -232,6 +250,9 @@ def runSim(var):
                 calculateTotalPropellant(var)
                 excavationSystemMass(var)
                 processingSystemMass(var)
+                spacecraftPowerCalculation(var)
+                spacecraftThermalCalculation(var)
+                spacecraftCommandAndDataHandlingCalculation(var)
                 summationVariables(var)
             else:
                 break
@@ -297,8 +318,10 @@ def plottingOutputCorellations(outputs, x, y, ylim=None, xlim=None):
 
 
 ###################################################################################################################
-###############################################################################################################
+###################################################################################################################
 
+cases = ['p-solar panel']
+numTrials = 1
 
 inputs = readInputs(cases)
 
@@ -306,11 +329,11 @@ outputs = pd.DataFrame()
 for trial in range(numTrials):
     var = defineInputData(inputs)
     runSim(var)
-    outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index')])
+    outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
     
 
 # plottingOutputCorellations(outputs, y='totalStayDays', x='powerPerBatch', xlim=[0,100])
-# plottingOutputCorellations(outputs, y='totalStayDays', x='totalPayloadMass', xlim=[50,300])
+#plottingOutputCorellations(outputs, y='totalStayDays', x='totalCost', xlim=[0,1.5e6])
 
 tornado('dryMass', inputs,5)
 # tornado('totalEnergyPerKg', inputs)  

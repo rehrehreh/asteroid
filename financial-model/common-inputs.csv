@@ -10,10 +10,11 @@ Name,varName,varType,units,use,varMin,p10,p50,p90,varMax,numberDecimals,categori
 #
 # Asteroid Mining Goals
 Produced Water per Delivery,waterGoal,numerical,kg,varMin,900,950,1000,1050,1100,0,
+Spacecraft Design Years,designYears,numerical,years,varMin,3,4,5,6,7,1
 #
 #
 # Asteroid properties
-Asteroid Water Percent,waterPercent,numerical,f_water,randomize,0.1,0.12,0.15,0.2,0.25,3,
+Asteroid Water Percent,waterPercent,numerical,f_water,randomize,0.1,0.12,0.15,0.2,0.25,3,s
 Asteroid Density,asteroidDensity,numerical,kg/m^3,randomize,1200,1250,1400,1500,1600,0,
 #
 #
@@ -46,9 +47,12 @@ Asteroid Molecular Weight,asteroidMW,numerical,g/mol,p10,258.16,258.16,258.16,25
 # Heating can be done via solar panels or solar thermal Heating
 # The ratio below is the amount of heating that comes from Solar Panels
 Solar Panel Heat Ratio,processSolarPanelHeatRatio,numerical,none,randomize,0,.1,.5,.9,1,1,
+#This is the efficiency at turning electrical energy into heat
 Solar Panel Minimum Efficiency,solarPanelEfficiency,numerical,%,randomize,.2,.25,.35,.4,.45,2,
-Solar Panel Energy Density,solarPanelEnergyDensity,numerical,kW/kg,randomize,1,1.1,2,2.5,3,2,
-Asteroid Max Radius from the Sun,asteroidMaxSunDistance,numerical,AU,randomize,1,1.2,1.5,2,2.5,2,
+#These values come from the SMADD
+Solar Panel Energy Density,solarPanelEnergyDensity,numerical,kW/kg,randomize,0.08,.1,.15,.18,.2,3,
+Solar Panel Performance Degradation,solarAnnualDegradation,numerical,%/year,randomize,2.5,3,3.75,4,4.2,2
+Asteroid Max Radius from the Sun,asteroidMaxSunDistance,numerical,AU,randomize,1,1.2,1.3,1.4,1.5,2,
 Earth Solar Radiation,earthSolarRadiation,numerical,W/m^2,p10,1360.8,1360.8,1360.8,1360.8,1360.8,1,
 Solar Thermal Minimum Efficiency,solarThermalEfficiency,numerical,%,randomize,0.4,0.5,0.6,0.7,0.8,2,
 Solar Thermal Energy Density,solarThermalEnergyDensity,numerical,kW/kg,randomize,2,3,4,5,6,1,
@@ -66,10 +70,19 @@ Engine ISP,engineISP,numerical,1,randomize,300,350,420,450,500,0,
 DeltaV from GTO to Asteroid,deltaVtoAsteroid,numerical,km/s2,randomize,1,2,2.5,2.6,3,2,
 DeltaV from Asteroid to EML1,deltaVtoEML1,numerical,km/s2,randomize,1,2,2.5,2.6,3,2,
 # This is the ratio amount of return propellant we plan to harvest form the asteroid
-Propellant Ratio Harvested at Asteroid,asteroidPropellantRatio,numerical,none,randomize,0,.3,.5,.8,1,2,
+Propellant Ratio Harvested at Asteroid,asteroidPropellantRatio,numerical,none,varMax,0,.3,.5,.8,1,2,
 Spacecraft Dry Mass initial guess,dryMassGuess,numerical,kg,p10,400,400,400,400,400,0,
 #
 #
+#
+# SMAD Subsystems
+Base Spacecraft Power,spacecraftBasePower,numerical,kW,randomize,0.04,0.05,0.06,0.07,0.08,3
+Command and Data Handling Mass,cdhMass,numerical,kg,randomize,8,9,10,11,12,1
+MLI Density,mliDensity,numerical,kg/m2,randomize,0.6,0.7,0.73,0.8,0.82,2
+Radiator Panel Density,radiatorDensity,numerical,kg/m2,randomize,3,3.3,3.5,3.8,4,2
+Radiation Power,radiationPower,nunerical,kW,randomize,0.3,.35,.4,.42,.45,2
+Heat Rejection Temperature,radiationRejectionTemperature,numerical,K,randomize,311,313,315,317,319,1
+Spacecraft Surface Area factor as payload,spacecraftSAFactor,numerical,none,randomize,0.2,0.25,0.3,0.32,0.33,2
 #
 # SMAD Correlations for Mass
 # Percent of dry mass that is the payload
