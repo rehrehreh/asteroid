@@ -23,7 +23,7 @@ Asteroid Density,asteroidDensity,numerical,kg/m^3,randomize,1200,1250,1400,1500,
 # The mass of this box depends on the asteroid properties and the required amount of water
 # An additional mass factor is applied to the box calculated mass to determine the total mass of the excavation system
 Construction Material Density,excavationMaterialDensity,numerical,kg/m^3,randomize,1800,2000,2800,3200,3400,0,
-Construction Material Thickness,excavationMaterialThickness,numerical,m,randomize,0.002,0.00254,0.0035,0.004,0.0045,5,
+Construction Material Thickness,excavationMaterialThickness,numerical,m,randomize,0.002,0.0025,0.0035,0.004,0.0045,5,
 Number of Scoops,excavationNumScoops,numerical,#,randomize,3,4,7,8,10,0,
 # the volume factor is divided by the volume^1/3 to caclulate the SA/V ratio
 Excavation Volume Factor,excavationVolumeFactor,numerical,m^-1,randomize,4,4.3,4.5,5,5.5,1,

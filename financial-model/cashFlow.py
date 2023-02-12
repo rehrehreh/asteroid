@@ -293,7 +293,17 @@ def runSim(var):
     return
 
 ### Graphing ###
-def tornado(outputVar, inputs, maxEffect=0):
+def addlabels(sensitivities, df_inputs, var):
+    for i in range(len(sensitivities)):
+        if i > 12:
+            break
+        y = sensitivities[var][i]
+        varName = sensitivities['varName'][i]
+        value = df_inputs[df_inputs['varName']==varName][var].values[0]
+        plt.text(y, i, value, ha = 'center', fontsize=11, )
+                 # Bbox = dict(facecolor = 'white', alpha =.6))
+
+def tornado(outputVar, inputs, maxEffect=0, saveFile=None):
     plt.rcParams.update({'font.size': 16})
     #remove categorical variables for now
     df_inputs = inputs[inputs['varType']=='numerical'].reset_index(drop=True)
@@ -324,9 +334,13 @@ def tornado(outputVar, inputs, maxEffect=0):
     
     fig, ax = plt.subplots(figsize=(10,0.75*len(sensitivities)))
     ax.barh(sensitivities['varName'], sensitivities['varMin'] , align='center', color='firebrick', label='varMin')
+    addlabels(sensitivities, df_inputs, 'varMin')
     ax.barh(sensitivities['varName'], sensitivities['p10'] , align='center', color='palevioletred', label='p10')
+    addlabels(sensitivities, df_inputs, 'p10')
     ax.barh(sensitivities['varName'], sensitivities['varMax'] , align='center', color='limegreen',label='varMax')
+    addlabels(sensitivities, df_inputs, 'varMax')
     ax.barh(sensitivities['varName'], sensitivities['p90'] , align='center', color='yellowgreen', label='p90')
+    addlabels(sensitivities, df_inputs, 'p90')
     plt.axvline(x=0, color='black', linestyle='--')
     ax.set_yticks(sensitivities['varName'].to_list())
     plt.legend()
@@ -334,6 +348,8 @@ def tornado(outputVar, inputs, maxEffect=0):
     ax.set_xlabel(f'Change to {outputVar}')
     medianVal = str(sensitivities['p50'].median())
     ax.set_title(f'Median {outputVar} is {medianVal}')
+    if saveFile != None:
+        plt.savefig(saveFile)
     return
 
 def plottingOutputCorellations(outputs, x, y, ylim=None, xlim=None, saveFile=None):
@@ -357,8 +373,7 @@ def singleVariableRange(inputs,inputVar,varRangeMin,varRangeMax,factor=1):
         var = defineInputData(inputs, force = 'Yes')
         var[inputVar] = a_in
         runSim(var)
-        outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
-    
+        outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])    
     return outputs
 
 
@@ -383,22 +398,19 @@ outputs = pd.DataFrame()
 #         outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
 
 
-# run a asingle variable run
-outputs = singleVariableRange(inputs,'waterGoal', 1, 2000, .1)
+### run a asingle variable run
+# outputs = singleVariableRange(inputs,'waterGoal', 1, 2000, .1)
+
+# saveFolder= r'C:\Users\HelloWorld\Documents\_git_code\asteroid\Model Design Description\\'
+# plottingOutputCorellations(outputs, y='excavationMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'exMass_vs_waterGoal')
+# plottingOutputCorellations(outputs, y='powerPerBatch', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'powerPerBatch_vs_waterGoal')
+# plottingOutputCorellations(outputs, y='totalProcessingMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processMass_vs_waterGoal')
+# plottingOutputCorellations(outputs, y='totalProcessingTime', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processTime_vs_waterGoal')
+# plottingOutputCorellations(outputs, y='dryMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'dryMass_vs_waterGoal')
 
 
 
-
-saveFolder= r'C:\Users\HelloWorld\Documents\_git_code\asteroid\Model Design Description\\'
-plottingOutputCorellations(outputs, y='excavationMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'exMass_vs_waterGoal')
-plottingOutputCorellations(outputs, y='powerPerBatch', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'powerPerBatch_vs_waterGoal')
-plottingOutputCorellations(outputs, y='totalProcessingMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processMass_vs_waterGoal')
-plottingOutputCorellations(outputs, y='totalProcessingTime', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processTime_vs_waterGoal')
-
-
-# plottingOutputCorellations(outputs, y='totalStayDays', x='powerPerBatch', xlim=[0,100])
-# plottingOutputCorellations(outputs, y='totalStayDays', x='totalCost', xlim=[0,1.5e6])
-
+## Tornado Plots
 tornado('dryMass', inputs,20)
 # tornado('totalEnergyPerKg', inputs, 1)  
 # tornado('powerPerBatch', inputs, 1)
