@@ -99,7 +99,7 @@ def excavationSystemMass(var):
     excavationVolume = regolithNeeded/var['excavationNumScoops']/var['asteroidDensity']
     excavationSAtoVratio = var['excavationVolumeFactor']/excavationVolume**(1/3)
     var['excavationSystemSA'] = excavationSAtoVratio*excavationVolume
-    excavationMass = var['excavationMaterialDensity'] * var['excavationMaterialThickness'] * var['excavationSystemSA'] * var['excavationMassFactor']
+    excavationMass = var['excavationMaterialDensity'] * var['excavationMaterialThickness'] * var['excavationSystemSA'] * var['excavationMassFactor']+ var['excvationMassA0']
     totalExcavationTime = var['excavationNumScoops'] * var['excavationTime']
 
     var.update({'excavationVolume':round(excavationVolume,2)})
@@ -112,9 +112,9 @@ def processingSystemMass(var):
     # This function is used to calculate the amount of energy needed to convert the asteroid material to water
     # It will then calculate the mass of the energy source and the processing equipment needed
     thermalEnergyPerKg = var['asteroidCp'] * (var['processEndTemp'] - var['processStartTemp']) / 1000 # kj/kg
-    phaseChangePerKg = var['processEnthalpy'] / var['asteroidMW'] * 1000 #kJ/kg
-    totalEnergyPerKg = thermalEnergyPerKg + phaseChangePerKg #kJ/kg
-    totalEnergyPerBatch = totalEnergyPerKg * var['regolithNeeded'] / var['excavationNumScoops'] #kJ
+    var['waterPerBatch'] = var['asteroidWaterNeeded'] / var['excavationNumScoops'] /var['processNumBatch']
+    var['reactionEnergy'] = var['processEnthalpy'] * (var['waterPerBatch'] / .01802)  #kJ
+    totalEnergyPerBatch = thermalEnergyPerKg * var['regolithNeeded'] / var['excavationNumScoops'] + var['reactionEnergy'] #kJ
     powerPerBatch = totalEnergyPerBatch / var['processTime'] * (1/24) * (1/60) * (1/60) #kW
     totalProcessingTime = var['processTime'] * var['excavationNumScoops'] # days
 
@@ -125,9 +125,10 @@ def processingSystemMass(var):
     totalPowerMass = totalSolarPanelMass + totalSolarThermalMass
 
     # Mass of processing container
-    # Assuming the batch size is the same for both systems
-    processSAtoVRatio = var['processVolumeFactor']/var['excavationVolume']**(1/3)
-    var['processSystemSA'] = processSAtoVRatio * var['excavationVolume']
+    # Assuming the batch size of the processing system is on a daily basis
+    var['processingVolume'] = var['excavationVolume'] / var['processNumBatch'] / var['processTime']
+    processSAtoVRatio = var['processVolumeFactor']/var['processingVolume']**(1/3)
+    var['processSystemSA'] = processSAtoVRatio * var['processingVolume']
     processContainerMass = var['processMaterialDensity'] * var['processMaterialThickness'] * var['processSystemSA'] * var['processMassFactor']
     
     totalProcessingMass = totalPowerMass + processContainerMass
@@ -137,7 +138,6 @@ def processingSystemMass(var):
     var.update({'totalEnergyPerBatch':round(totalEnergyPerBatch,2)})
     var.update({'totalProcessingTime':round(totalProcessingTime,2)})
     var.update({'processContainerMass':round(processContainerMass,2)})
-    var.update({'totalEnergyPerKg':round(totalEnergyPerKg,2)})
     return
 
 def spacecraftPowerCalculation(var):
@@ -272,10 +272,6 @@ def calculateSpacecraftCost(var):
     var['costPerKgWater'] = var['totalCost'] / var['waterGoal']
     return
 
-
-
-
-    
     
 def runSim(var):
     # these variables determine the maximum number of iterations and convergence minimum for the dry mass calculations
@@ -297,7 +293,7 @@ def runSim(var):
     return
 
 ### Graphing ###
-def tornado(outputVar, inputs, maxEffect):
+def tornado(outputVar, inputs, maxEffect=0):
     plt.rcParams.update({'font.size': 16})
     #remove categorical variables for now
     df_inputs = inputs[inputs['varType']=='numerical'].reset_index(drop=True)
@@ -340,7 +336,7 @@ def tornado(outputVar, inputs, maxEffect):
     ax.set_title(f'Median {outputVar} is {medianVal}')
     return
 
-def plottingOutputCorellations(outputs, x, y, ylim=None, xlim=None):
+def plottingOutputCorellations(outputs, x, y, ylim=None, xlim=None, saveFile=None):
     fig, ax = plt.subplots(figsize=(10,6))
     ax.scatter(outputs[x], outputs[y])
     ax.set_xlabel(x)
@@ -350,6 +346,8 @@ def plottingOutputCorellations(outputs, x, y, ylim=None, xlim=None):
     if xlim!=None:
         ax.set_xlim(xlim)
     # ax.plot(np.unique(outputs[x]), np.poly1d(np.polyfit(outputs[x], outputs[y], 1))(np.unique(outputs[x])), color='r')
+    if saveFile!=None:
+        plt.savefig(saveFile)
     return
 
 def singleVariableRange(inputs,inputVar,varRangeMin,varRangeMax,factor=1):
@@ -385,23 +383,25 @@ outputs = pd.DataFrame()
 #         outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
 
 
-## run a asingle variable run
-# outputs = singleVariableRange(inputs,'waterGoal', 1, 2000, .1)
+# run a asingle variable run
+outputs = singleVariableRange(inputs,'waterGoal', 1, 2000, .1)
 
 
 
 
-
-# plottingOutputCorellations(outputs, y='dryMass', x='waterGoal', xlim=[0,2000])
-# plottingOutputCorellations(outputs, y='netPropellant', x='waterGoal', xlim=[0,2000], ylim=[-500,800])
+saveFolder= r'C:\Users\HelloWorld\Documents\_git_code\asteroid\Model Design Description\\'
+plottingOutputCorellations(outputs, y='excavationMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'exMass_vs_waterGoal')
+plottingOutputCorellations(outputs, y='powerPerBatch', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'powerPerBatch_vs_waterGoal')
+plottingOutputCorellations(outputs, y='totalProcessingMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processMass_vs_waterGoal')
+plottingOutputCorellations(outputs, y='totalProcessingTime', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processTime_vs_waterGoal')
 
 
 # plottingOutputCorellations(outputs, y='totalStayDays', x='powerPerBatch', xlim=[0,100])
 # plottingOutputCorellations(outputs, y='totalStayDays', x='totalCost', xlim=[0,1.5e6])
 
-tornado('costPerKgWater', inputs,20)
-# tornado('totalEnergyPerKg', inputs)  
-# tornado('powerPerBatch', inputs)
+tornado('dryMass', inputs,20)
+# tornado('totalEnergyPerKg', inputs, 1)  
+# tornado('powerPerBatch', inputs, 1)
 # tornado('totalEnergyPerKg', inputs)    
 # tornado('totalPropellant', inputs, 100) 
 # tornado('tfu_costCer_totalCost', inputs, 1) 
