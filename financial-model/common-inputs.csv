@@ -1,5 +1,5 @@
 Name,varName,varType,units,use,varMin,p10,p50,p90,varMax,numberDecimals,categorical
-# Any row in this sheet will be disregaurded as long as the Name variable begins with a "#"
+"# Any row in this sheet will be disregaurded as long as the Name variable begins with a #"
 # The types of variables are: numerical, categorical, boolean
 # Right now there is no differentiation cause by the type variable
 #
