@@ -276,7 +276,7 @@ def calculateSpacecraftCost(var):
     
 def runSim(var):
     # these variables determine the maximum number of iterations and convergence minimum for the dry mass calculations
-    maxIterations = 100
+    maxIterations = 1000
     convergence = 1 #kg
     propGuess = 200
     for iter in range(maxIterations):
@@ -351,7 +351,7 @@ def tornado(outputVar, inputs, maxEffect=0, saveFile=None):
     ax.invert_yaxis()  # labels read top-to-bottom
     ax.set_xlabel(f'Change to {outputVar}')
     medianVal = str(sensitivities['p50'].median())
-    ax.set_title(f'Median {outputVar} is {medianVal}')
+    ax.set_title(f'Base {outputVar} is {medianVal}')
     if saveFile != None:
         plt.savefig(saveFile)
     return
@@ -402,10 +402,10 @@ cases = ['p-solar panel']
 
 inputs = readInputs(cases)
 outputs = pd.DataFrame()
-
+saveFolder= r'C:\Users\HelloWorld\Documents\_git_code\asteroid\Model Design Description\figures\\'
 
 ## Run a monte Carlo
-numTrials = 1000
+numTrials = 5000
 for trial in range(numTrials):
     var = defineInputData(inputs)
     runSim(var)
@@ -421,20 +421,20 @@ print(pVals)
 
 ### run a asingle variable run
 # outputs = singleVariableRange(inputs,'waterGoal', 1, 2000, .1)
-
-saveFolder= r'C:\Users\HelloWorld\Documents\_git_code\asteroid\Model Design Description\\'
 # plottingOutputCorellations(outputs, y='excavationMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'exMass_vs_waterGoal')
 # plottingOutputCorellations(outputs, y='powerPerBatch', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'powerPerBatch_vs_waterGoal')
 # plottingOutputCorellations(outputs, y='totalProcessingMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processMass_vs_waterGoal')
 # plottingOutputCorellations(outputs, y='totalProcessingTime', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processTime_vs_waterGoal')
 # plottingOutputCorellations(outputs, y='dryMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'dryMass_vs_waterGoal')
+
+
 plottingOutputCorellations(outputs, y='netProp', x='totalStayDays',  saveFile=saveFolder+'stayDays_vs_netProp')
 plottingOutputCorellations(outputs, y='dryMass', x='totalStayDays',  saveFile=saveFolder+'stayDays_vs_dryMass')
 
 
 
 ## Tornado Plots
-tornado('netProp', inputs, 10)  
+# tornado('netProp', inputs, 100)  
 # tornado('powerPerBatch', inputs, 1)
 # tornado('totalEnergyPerKg', inputs)    
 # tornado('totalPropellant', inputs, 100) 

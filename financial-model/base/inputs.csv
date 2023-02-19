@@ -1,0 +1,2 @@
+Name,varName,varType,units,use,varMin,p10,p50,p90,varMax,numberDecimals,categorical
+# Any row in this sheet will be disregaurded as long as the Name variable begins with a "#"
