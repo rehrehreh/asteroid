@@ -116,7 +116,7 @@ def processingSystemMass(var):
     var['reactionEnergy'] = var['processEnthalpy'] * (var['waterPerBatch'] / .01802)  #kJ
     totalEnergyPerBatch = thermalEnergyPerKg * var['regolithNeeded'] / var['excavationNumScoops'] + var['reactionEnergy'] #kJ
     powerPerBatch = totalEnergyPerBatch / var['processTime'] * (1/24) * (1/60) * (1/60) #kW
-    totalProcessingTime = var['processTime'] * var['excavationNumScoops'] # days
+    totalProcessingTime = var['processTime'] * var['excavationNumScoops'] * var['processNumBatch'] # days
 
     # Mass of energy supply
     solarThermalRatio = 1 - var['processSolarPanelHeatRatio']
@@ -186,6 +186,7 @@ def summationVariables(var):
     var['totalStayDays'] = var['totalProcessingTime'] + var['excavationTime']
     var['dryMass'] = var['totalProcessingMass'] + var['excavationMass'] + var['baseSolarPanelMass'] + var['cdhMass'] +  var['massRadiator'] + var['massMLI'] + var['massGNC'] + var['massEngine'] + var['massTank'] + var['commMass'] + var['massAtt']
     var['dryMass']  = var['dryMass'] * (1 + var['structureDryMassFactor'] + var['dryMassMargin'])
+    var['netProp'] = var['waterGoal'] - var['massPropToAsteroid']
     return
 
 def simOrder(var):
@@ -292,6 +293,9 @@ def runSim(var):
     # 
     return
 
+
+#####################################################################################################
+#######################################################################################################
 ### Graphing ###
 def addlabels(sensitivities, df_inputs, var):
     for i in range(len(sensitivities)):
@@ -300,8 +304,8 @@ def addlabels(sensitivities, df_inputs, var):
         y = sensitivities[var][i]
         varName = sensitivities['varName'][i]
         value = df_inputs[df_inputs['varName']==varName][var].values[0]
-        plt.text(y, i, value, ha = 'center', fontsize=11, )
-                 # Bbox = dict(facecolor = 'white', alpha =.6))
+        plt.text(y, i, value, ha = 'center', fontsize=11, 
+                 Bbox = dict(facecolor = 'white', alpha =.6))
 
 def tornado(outputVar, inputs, maxEffect=0, saveFile=None):
     plt.rcParams.update({'font.size': 16})
@@ -376,7 +380,19 @@ def singleVariableRange(inputs,inputVar,varRangeMin,varRangeMax,factor=1):
         outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])    
     return outputs
 
-
+def getpValues(outputs, outVars):
+    pVals = pd.DataFrame()
+    for outVar in outVars:
+        temp = {}
+        temp['var'] = outVar
+        temp['min'] = min(outputs[outVar])
+        temp['p10'] = outputs[outVar].quantile(0.1)
+        temp['p50'] = outputs[outVar].quantile(0.5)
+        temp['p90'] = outputs[outVar].quantile(0.9)
+        temp['max'] = max(outputs[outVar])
+        df_temp = pd.DataFrame.from_dict(temp, orient='index').T
+        pVals = pd.concat([pVals, df_temp])
+    return pVals
 
 ###################################################################################################################
 ###################################################################################################################
@@ -389,30 +405,36 @@ outputs = pd.DataFrame()
 
 
 ## Run a monte Carlo
-# numTrials = 1
-# for trial in range(numTrials):
-#     var = defineInputData(inputs)
-#     runSim(var)
-#     #sanity check for results
-#     if var['totalPayloadMass']<2000:
-#         outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
+numTrials = 1000
+for trial in range(numTrials):
+    var = defineInputData(inputs)
+    runSim(var)
+    #sanity check for results
+    if var['totalPayloadMass']<2000:
+        outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
+
+# get the distributed outputs for Joes model
+outputs_to_Joe = ['dryMass', 'netProp', 'totalStayDays', 'rdte_costCer_totalCost', 'tfu_costCer_totalCost']
+pVals = getpValues(outputs, outputs_to_Joe)
+print(pVals)
 
 
 ### run a asingle variable run
 # outputs = singleVariableRange(inputs,'waterGoal', 1, 2000, .1)
 
-# saveFolder= r'C:\Users\HelloWorld\Documents\_git_code\asteroid\Model Design Description\\'
+saveFolder= r'C:\Users\HelloWorld\Documents\_git_code\asteroid\Model Design Description\\'
 # plottingOutputCorellations(outputs, y='excavationMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'exMass_vs_waterGoal')
 # plottingOutputCorellations(outputs, y='powerPerBatch', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'powerPerBatch_vs_waterGoal')
 # plottingOutputCorellations(outputs, y='totalProcessingMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processMass_vs_waterGoal')
 # plottingOutputCorellations(outputs, y='totalProcessingTime', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processTime_vs_waterGoal')
 # plottingOutputCorellations(outputs, y='dryMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'dryMass_vs_waterGoal')
+plottingOutputCorellations(outputs, y='netProp', x='totalStayDays',  saveFile=saveFolder+'stayDays_vs_netProp')
+plottingOutputCorellations(outputs, y='dryMass', x='totalStayDays',  saveFile=saveFolder+'stayDays_vs_dryMass')
 
 
 
 ## Tornado Plots
-tornado('dryMass', inputs,20)
-# tornado('totalEnergyPerKg', inputs, 1)  
+tornado('netProp', inputs, 10)  
 # tornado('powerPerBatch', inputs, 1)
 # tornado('totalEnergyPerKg', inputs)    
 # tornado('totalPropellant', inputs, 100) 
