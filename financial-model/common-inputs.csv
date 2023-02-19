@@ -38,7 +38,7 @@ Excavation Time,excavationTime,numerical,days/scoop,randomize,0.5,0.8,1,1.5,2,2,
 #
 Asteroid Material Mean specific heat,asteroidCp,numerical,J/kg/K,randomize,800,950,1100,1300,1400,0,
 # A batch is described as a single scoop of material from the excavation subsystem
-Processing Time,processTime,numerical,days/batch,randomize,2,3,4,5,6,1,
+Processing Time,processTime,numerical,days/batch,randomize,3,4,5,6,7,1,
 Processing Number of Batches,processNumBatch,numerical,num,randomize,3,4,5,6,7,1
 Processing Start Temperature,processStartTemp,numerical,C,randomize,250,275,300,325,350,0,
 Processing End Temperature,processEndTemp,numerical,C,randomize,500,550,600,650,700,0,

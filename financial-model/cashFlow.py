@@ -187,6 +187,7 @@ def summationVariables(var):
     var['dryMass'] = var['totalProcessingMass'] + var['excavationMass'] + var['baseSolarPanelMass'] + var['cdhMass'] +  var['massRadiator'] + var['massMLI'] + var['massGNC'] + var['massEngine'] + var['massTank'] + var['commMass'] + var['massAtt']
     var['dryMass']  = var['dryMass'] * (1 + var['structureDryMassFactor'] + var['dryMassMargin'])
     var['netProp'] = var['waterGoal'] - var['massPropToAsteroid']
+    var['launchMass'] = var['dryMass'] + var['launchedPropellant']
     return
 
 def simOrder(var):
@@ -385,11 +386,11 @@ def getpValues(outputs, outVars):
     for outVar in outVars:
         temp = {}
         temp['var'] = outVar
-        temp['min'] = min(outputs[outVar])
-        temp['p10'] = outputs[outVar].quantile(0.1)
-        temp['p50'] = outputs[outVar].quantile(0.5)
-        temp['p90'] = outputs[outVar].quantile(0.9)
-        temp['max'] = max(outputs[outVar])
+        temp['min'] = min(outputs[outVar]).round(1)
+        temp['p10'] = outputs[outVar].quantile(0.1).round(1)
+        temp['p50'] = outputs[outVar].quantile(0.5).round(1)
+        temp['p90'] = outputs[outVar].quantile(0.9).round(1)
+        temp['max'] = max(outputs[outVar]).round(1)
         df_temp = pd.DataFrame.from_dict(temp, orient='index').T
         pVals = pd.concat([pVals, df_temp])
     return pVals
@@ -405,19 +406,20 @@ outputs = pd.DataFrame()
 saveFolder= r'C:\Users\HelloWorld\Documents\_git_code\asteroid\Model Design Description\figures\\'
 
 ## Run a monte Carlo
-numTrials = 5000
+numTrials = 200
 for trial in range(numTrials):
     var = defineInputData(inputs)
     runSim(var)
     #sanity check for results
-    if var['totalPayloadMass']<2000:
+    if var['dryMass']<6000:
         outputs = pd.concat([outputs,pd.DataFrame.from_dict(var, orient='index').T])
+outputs.to_csv('outputs\simData.csv', float_format='%.3f')
 
 # get the distributed outputs for Joes model
-outputs_to_Joe = ['dryMass', 'netProp', 'totalStayDays', 'rdte_costCer_totalCost', 'tfu_costCer_totalCost']
+outputs_to_Joe = ['dryMass', 'launchMass', 'netProp', 'totalStayDays', 'rdte_costCer_totalCost', 'tfu_costCer_totalCost']
 pVals = getpValues(outputs, outputs_to_Joe)
 print(pVals)
-
+pVals.to_csv('outputs\outputs_to_joe.csv')
 
 ### run a asingle variable run
 # outputs = singleVariableRange(inputs,'waterGoal', 1, 2000, .1)
