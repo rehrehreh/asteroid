@@ -9,13 +9,13 @@ Name,varName,varType,units,use,varMin,p10,p50,p90,varMax,numberDecimals,categori
 #
 #
 # Asteroid Mining Goals
-Produced Water per Delivery,waterGoal,numerical,kg,p50,800,900,1000,1100,1200,0,
+Produced Water per Delivery,waterGoal,numerical,kg,varMin,800,900,1000,1100,1200,0,
 Spacecraft Design Years,designYears,numerical,years,varMin,3,4,5,6,7,1
 #
 #
 # Asteroid properties
 Asteroid Water Percent,waterPercent,numerical,f_water,randomize,0.1,0.12,0.15,0.2,0.25,3,s
-Asteroid Density,asteroidDensity,numerical,kg/m^3,randomize,1200,1250,1400,1500,1600,0,
+Asteroid Density,asteroidDensity,numerical,kg/m^3,randomize,1200,1500,1700,1800,1900,0,
 #
 #
 # Excavation mass and sizing calculations
@@ -45,10 +45,9 @@ Processing End Temperature,processEndTemp,numerical,C,randomize,500,550,600,650,
 # This value is for Kaolinite per https://www.researchgate.net/publication/227318533_Kinetics_and_Mechanism_of_Dehydration_of_Kaolinite_Muscovite_and_Talc_Analyzed_Thermogravimetrically_by_the_Third-Law_Method/link/5892e15792851cda256a3de1/download
 # The assumption is that the entire asteroid is kaolinite for now
 Processing Reaction Enthalpy,processEnthalpy,numerical,kJ/mol,randomize,900,950,1000,1100,1200,0,
-Asteroid Molecular Weight,asteroidMW,numerical,g/mol,p10,258.16,258.16,258.16,258.16,258.16,2,
 # Heating can be done via solar panels or solar thermal Heating
 # The ratio below is the amount of heating that comes from Solar Panels
-Solar Panel Heat Ratio,processSolarPanelHeatRatio,numerical,none,varMin,0,.1,.5,.9,1,1,
+Solar Panel Heat Ratio,processSolarPanelHeatRatio,numerical,none,varMax,0,.1,.5,.9,1,1,
 #This is the efficiency at turning electrical energy into heat
 Solar Panel Minimum Efficiency,solarPanelEfficiency,numerical,%,randomize,.8,.85,.9,.93,.95,2,
 #These values come from the SMADD
@@ -68,7 +67,7 @@ Processing Material Thickness,processMaterialThickness,numerical,m,randomize,0.0
 #
 #
 # Orbital consideration
-Engine ISP,engineISP,numerical,1,randomize,350,380,420,450,470,0,
+Engine ISP,engineISP,numerical,1,randomize,290,300,340,360,370,0,
 DeltaV from GTO to Asteroid,deltaVtoAsteroid,numerical,km/s2,randomize,1,2,2.5,2.6,3,2,
 DeltaV from Asteroid to EML1,deltaVtoEML1,numerical,km/s2,randomize,1,2,2.5,2.6,3,2,
 # This is the ratio amount of return propellant we plan to harvest form the asteroid
@@ -78,7 +77,9 @@ Spacecraft Dry Mass initial guess,dryMassGuess,numerical,kg,p10,400,400,400,400,
 #
 #
 # SMAD Subsystems
-Base Spacecraft Power,spacecraftBasePower,numerical,kW,randomize,0.6,0.7,.8,.9,1,3
+Base Spacecraft Power,spacecraftBasePower,numerical,kW,randomize,0.9,1,1.1,1.2,1.3,3
+Battery Time,batteryTime,numerical,hours,randomize,4,5,6,7,8,2
+Battery specific energy density,batteryDensity,numerical,Whr/kg,randomize,70,80,100,110,120,1
 Command and Data Handling Mass,cdhMass,numerical,kg,randomize,8,9,10,11,12,1
 MLI Density,mliDensity,numerical,kg/m2,randomize,0.6,0.7,0.73,0.8,0.82,2
 Radiator Panel Density,radiatorDensity,numerical,kg/m2,randomize,3,3.3,3.5,3.8,4,2
@@ -90,8 +91,8 @@ Guidance and Navigation Mass,gncMass,numerical,kg,randomize,15,20,25,30,35,1
 Propellant Tank Density,propTankDensity,numerical,kg/m3,randomize,1400,1600,2000,2200,2500,0,
 # Assuming monopropellant
 Number of Tanks,tankNumber,numerical,none,varMax,1,1,1,1,2,0
-Tank Pressurant Mass Factor,tankPressurantMassFactor,numerical,none,randomize,1.05,1.08,1.1,1.12,1.15,2
-Tank Material Thickness,tankMaterialThickness,numerical,m,randomize,0.002,0.00254,0.0035,0.004,0.0045,5,
+Tank Pressurant Mass Factor,tankPressurantMassFactor,numerical,none,randomize,1.1,1.12,1.2,1.27,1.28,2
+Tank Material Thickness,tankMaterialThickness,numerical,m,randomize,0.003,0.004,0.005,0.006,0.007,5,
 # the volume factor is divided by the volume^1/3 to caclulate the SA/V ratio
 Tank Volume Factor,tankVolumeFactor,numerical,m^-1,randomize,4,4.3,4.5,5,5.5,1,
 Propellant Density,propDensity,numerical,kg/m3,randomize,0.8,0.9,1,1.1,1.2,2
@@ -107,15 +108,16 @@ Dry Mass Margin,dryMassMargin,numerical,none,randomize,.05,.1,.15,.2,.25,2,
 # 
 # SMAD Cost Correlations
 # All values are in FY00K
-# CER Structure,cerStructure,numerical,none,randomize,70,80,101,120,130,1,
+cerStructureA1,cerStructureA1,numerical,none,randomize,140,145,157,160,165,0
+cerStructureE1,cerStructureE1,numerical,none,randomize,0.75,0.80,0.83,0.85,0.86,3
 # cerThermalA1,cerThermalA1,numerical,N/r,randomize,,,394,,,1,
 # cerThermalE1,cerThermalE1,numerical,N/r,randomize,,,0.635,,,3,
 # cerThermalA2,cerThermalA2,numerical,N/r,randomize,,,1.1,,,2,
 # cerThermalE2,cerThermalE2,numerical,N/r,randomize,,,0.610,,,3,
 # cerThermalE3,cerThermalE3,numerical,N/r,randomize,,,0.943,,,3,
-# cerEPSA1,cerEPSA1,numerical,N/r,randomize,,,62.7,,,1,
-# cerEPSA2,cerEPSA2,numerical,N/r,randomize,,,2.63,,,2,
-# cerEPSE1,cerEPSE1,numerical,N/r,randomize,,,0.712,,,3,
+cerEPSA1,cerEPSA1,numerical,N/r,randomize,55,60,62.7,65,69,1,
+cerEPSA2,cerEPSA2,numerical,N/r,randomize,2,2.4,2.63,3,3.1,2,
+cerEPSE1,cerEPSE1,numerical,N/r,randomize,.68,.69,0.712,.72,.73,3,
 # RDT&E costs
 cerDryMassA1,cerDryMassA1,numerical,none,randomize,70,80,101,120,130,1,
 cerIATA0,cerIATA0,numerical,none,randomize,850,900,989,1070,1100,1,
@@ -128,3 +130,5 @@ cerDryMassA1,cerTFUDryMassA1,numerical,none,randomize,30,35,43,55,70,1,
 cerIATA0,cerTFUIATA1,numerical,none,randomize,7,8,10.4,12,15,2,
 cerProgramA1,cerTFUProgramA1,numerical,none,randomize,0.2,0.3,0.341,0.4,0.5,3,
 cerTRLFactor,cerTFUTRLFactor,numerical,none,randomize,1.1,1.15,1.2,1.23,1.3,2,
+cerTfuEPSA1,cerTfuEPSA1,numerical,none,randomize,95,105,112,120,130,1
+cerTfuEPSE1,cerTfuEPSE1,numerical,none,randomize,0.69,0.72,0.763,0.79,0.81,3
