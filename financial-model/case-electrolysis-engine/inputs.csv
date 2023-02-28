@@ -1,0 +1,16 @@
+Name,varName,varType,units,use,varMin,p10,p50,p90,varMax,numberDecimals,categorical
+# Any row in this sheet will be disregaurded as long as the Name variable begins with a "#"
+# Water Electrolysis
+use electrolysis,electrolysis,numerical,binary,varMax,0,0,1,1,1,0
+electrolysis energy for hydrogen,elecHydrogenEnergy,numerical,kWh/kg,randomize,45,50,53,55,58,1
+electrolysis power,elecPower,numerical,kW,randomize,0.7,0.9,1,1.2,1.3,2
+electrolysis mass,elecMass,numerical,kg,randomize,20,25,35,40,45,1
+#
+Propellant Tank Density,propTankDensity,numerical,kg/m3,randomize,1400,1600,2000,2200,2500,0,
+# Assuming monopropellant
+Number of Tanks,tankNumber,numerical,none,varMax,1,1,1,1,2,0
+Tank Pressurant Mass Factor,tankPressurantMassFactor,numerical,none,randomize,1.1,1.12,1.2,1.27,1.28,2
+Tank Material Thickness,tankMaterialThickness,numerical,m,randomize,0.003,0.004,0.005,0.006,0.007,5,
+# the volume factor is divided by the volume^1/3 to caclulate the SA/V ratio
+Tank Volume Factor,tankVolumeFactor,numerical,m^-1,randomize,4,4.3,4.5,5,5.5,1,
+Propellant Density,propDensity,numerical,kg/m3,randomize,0.8,0.9,1,1.1,1.2,2
