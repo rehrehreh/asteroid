@@ -36,6 +36,7 @@ Excavation Time,excavationTime,numerical,days/scoop,randomize,0.5,0.8,1,1.5,2,2,
 #
 # Processing System mass and sizing
 #
+#
 Asteroid Material Mean specific heat,asteroidCp,numerical,J/kg/K,randomize,800,950,1100,1300,1400,0,
 # A batch is described as a single scoop of material from the excavation subsystem
 Processing Time,processTime,numerical,days/batch,randomize,3,4,5,6,7,1,
@@ -65,6 +66,11 @@ Processing Material Density,processMaterialDensity,numerical,kg/m^3,randomize,14
 Processing Material Thickness,processMaterialThickness,numerical,m,randomize,0.002,0.00254,0.0035,0.004,0.0045,5,
 #
 #
+# Water Electrolysis
+use electrolysis,electrolysis,numerical,binary,varMax,0,0,1,1,1,0
+electrolysis energy for hydrogen,elecHydrogenEnergy,numerical,kWh/kg,randomize,45,50,53,55,58,1
+electrolysis power,elecPower,numerical,kW,randomize,0.7,0.9,1,1.2,1.3,2
+electrolysis mass,elecMass,numerical,kg,randomize,20,25,35,40,45,1
 #
 # Orbital consideration
 Engine ISP,engineISP,numerical,1,randomize,290,300,340,360,370,0,

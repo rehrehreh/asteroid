@@ -1,0 +1,4 @@
+add subsystem bases cost multipliers (did this for some so far)
+find references for solar thermal energy density
+add mass, energy, efficiency for water filtration
+

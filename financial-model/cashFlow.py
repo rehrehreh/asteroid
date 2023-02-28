@@ -196,6 +196,25 @@ def spacecraftAttitudeControlCalculation(var):
     var['massAtt'] = var['attMass']
     return
 
+def spacecraftElectroysis(var):
+    if var['electrolysis'] > 0:
+        var['hydrogenProductionMass'] = var['massPropToEML1'] / 18.02 * 2.02
+        var['elecEnergy'] = var['hydrogenProductionMass'] * var['elecHydrogenEnergy']
+        if var['elecPower'] < (var['powerPerBatch'] * var['processSolarPanelHeatRatio']):
+            var['powerElec'] = var['powerPerBatch'] * var['processSolarPanelHeatRatio']
+            var['elecPowerMass'] = 0
+        else:
+            var['powerElec'] = var['elecPower']
+            var['elecPowerMass'] = var['powerElec']  / var['solarPanelEnergyDensity'] / var['solarPanelEfficiency'] / (1 / var['asteroidMaxSunDistance']**2) / (1-var['solarAnnualDegradation']/100)**(var['designYears'])
+        var['timeElectrolysis'] = var['elecEnergy'] / var['powerElec']  /24
+        var['massElectrolysis'] = var['elecPowerMass'] + var['elecMass']
+    else:
+        var['timeElectrolysis'] = 0
+        var['massElectrolysis'] = 0
+        var['powerElec'] = 0
+        var['elecPowerMass'] = 0
+    return
+
 def spacecraftPropulsionCalulation(var):
     if 'totalPropellant' in var:
         totalPropellant = var['totalPropellant']
@@ -210,7 +229,9 @@ def spacecraftPropulsionCalulation(var):
 def summationVariables(var):
     var['totalPayloadMass'] = var['totalProcessingMass'] + var['excavationMass']
     var['totalStayDays'] = var['totalProcessingTime'] + var['excavationTime']
-    var['dryMass'] = var['totalProcessingMass'] + var['excavationMass'] + var['baseSolarPanelMass'] + var['cdhMass'] +  var['massRadiator'] + var['massMLI'] + var['massGNC'] + var['massEngine'] + var['massTank'] + var['commMass'] + var['massAtt'] + var['batteryMass']
+    var['dryMass'] = var['totalProcessingMass'] + var['excavationMass'] + var['baseSolarPanelMass'] +\
+        var['cdhMass'] +  var['massRadiator'] + var['massMLI'] + var['massGNC'] + var['massEngine'] +\
+            var['massTank'] + var['commMass'] + var['massAtt'] + var['batteryMass'] + var['massElectrolysis']
     var['dryMass']  = var['dryMass'] * (1 + var['structureDryMassFactor'] + var['dryMassMargin'])
     var['netProp'] = var['waterGoal'] - var['massPropToAsteroid']
     var['launchMass'] = var['dryMass'] + var['launchedPropellant']
@@ -228,6 +249,7 @@ def simOrder(var):
     spacecraftAttitudeControlCalculation(var)
     spacecraftCommunicationsCalculation(var)
     spacecraftCommandAndDataHandlingCalculation(var)
+    spacecraftElectroysis(var)
     summationVariables(var)
     spacecraftStructureCalculation(var)
     return
@@ -458,7 +480,7 @@ if running == 'MonteCarlo':
 
 ### run a asingle variable run
 if running == 'Range':
-    outputs = singleVariableRange(inputs,'waterGoal', 1, 2000, .1)
+    outputs = singleVariableRange(inputs,'waterGoal', 1, 1000, .1)
     plottingOutputCorellations(outputs, y='excavationMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'exMass_vs_waterGoal')
     plottingOutputCorellations(outputs, y='powerPerBatch', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'powerPerBatch_vs_waterGoal')
     plottingOutputCorellations(outputs, y='totalProcessingMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processMass_vs_waterGoal')
@@ -468,7 +490,7 @@ if running == 'Range':
     plottingOutputCorellations(outputs, y='percentPropSold', x='waterGoal', xlim=[0,2000], ylim=[-1,1], saveFile=saveFolder+'percentProp_vs_waterGoal')
     plottingOutputCorellations(outputs, y='rdte_costCer_totalCost', x='waterGoal', xlim=[0,2000],  saveFile=saveFolder+'rtd_Cost_vs_waterGoal')
     plottingOutputCorellations(outputs, y='tfu_costCer_totalCost', x='waterGoal', xlim=[0,2000],  saveFile=saveFolder+'tfu_Cost_vs_waterGoal')
-
+    plottingOutputCorellations(outputs, y='timeElectrolysis', x='waterGoal', xlim=[0,2000])
 ## Tornado Plots
 if running == 'Tornado':
     tornado('dryMass', inputs, 20)  
