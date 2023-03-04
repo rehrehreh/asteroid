@@ -444,13 +444,13 @@ def getpValues(outputs, outVars):
 ###################################################################################################################
 ###################################################################################################################
 
-cases = ['base']
+cases = ['case-solar-thermal', 'case-engine-LH2LO2']
 
 
 inputs = readInputs(cases)
 outputs = pd.DataFrame()
 saveFolder=r'C:\Users\HelloWorld\Documents\_git_code\asteroid\Model Design Description\figures\\'
-running = 'Tornado'
+running = 'Range'
 
 
 
@@ -459,7 +459,7 @@ running = 'Tornado'
 
 ## Run a monte Carlo
 if running == 'MonteCarlo':
-    numTrials = 1000
+    numTrials = 1
     for trial in range(numTrials):
         var = defineInputData(inputs)
         runSim(var)
@@ -481,10 +481,10 @@ if running == 'MonteCarlo':
 ### run a asingle variable run
 if running == 'Range':
     outputs = singleVariableRange(inputs,'waterGoal', 1, 1000, .1)
-    plottingOutputCorellations(outputs, y='excavationMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'exMass_vs_waterGoal')
-    plottingOutputCorellations(outputs, y='powerPerBatch', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'powerPerBatch_vs_waterGoal')
-    plottingOutputCorellations(outputs, y='totalProcessingMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processMass_vs_waterGoal')
-    plottingOutputCorellations(outputs, y='totalProcessingTime', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processTime_vs_waterGoal')
+    # plottingOutputCorellations(outputs, y='excavationMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'exMass_vs_waterGoal')
+    # plottingOutputCorellations(outputs, y='powerPerBatch', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'powerPerBatch_vs_waterGoal')
+    # plottingOutputCorellations(outputs, y='totalProcessingMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processMass_vs_waterGoal')
+    # plottingOutputCorellations(outputs, y='totalProcessingTime', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processTime_vs_waterGoal')
     plottingOutputCorellations(outputs, y='dryMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'dryMass_vs_waterGoal')
     plottingOutputCorellations(outputs, y='netProp', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'netProp_vs_waterGoal')
     plottingOutputCorellations(outputs, y='percentPropSold', x='waterGoal', xlim=[0,2000], ylim=[-1,1], saveFile=saveFolder+'percentProp_vs_waterGoal')
