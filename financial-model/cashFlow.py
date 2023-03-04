@@ -354,7 +354,7 @@ def addlabels(sensitivities, df_inputs, var):
         plt.text(y, i, value, ha = 'center', fontsize=11, 
                  Bbox = dict(facecolor = 'white', alpha =.6))
 
-def tornado(outputVar, inputs, maxEffect=0, saveFile=None):
+def tornado(outputVar, inputs, maxEffect=0, saveFile=None, maxRound=None):
     plt.rcParams.update({'font.size': 16})
     #remove categorical variables for now
     df_inputs = inputs[inputs['varType']=='numerical'].reset_index(drop=True)
@@ -444,13 +444,13 @@ def getpValues(outputs, outVars):
 ###################################################################################################################
 ###################################################################################################################
 
-cases = ['case-solar-panels']
+cases = ['base']
 
 
 inputs = readInputs(cases)
 outputs = pd.DataFrame()
 saveFolder=r'C:\Users\HelloWorld\Documents\_git_code\asteroid\Model Design Description\figures\\'
-running = 'Range'
+running = 'Tornado'
 
 
 
@@ -459,7 +459,7 @@ running = 'Range'
 
 ## Run a monte Carlo
 if running == 'MonteCarlo':
-    numTrials = 500
+    numTrials = 1000
     for trial in range(numTrials):
         var = defineInputData(inputs)
         runSim(var)
@@ -475,7 +475,7 @@ if running == 'MonteCarlo':
     pVals.to_csv('outputs\outputs_to_joe.csv', index=False)
     
     
-    plottingOutputCorellations(outputs, y='netProp', x='totalStayDays',  saveFile=saveFolder+'stayDays_vs_netProp')
+    plottingOutputCorellations(outputs, y='excavationMass', x='waterPercent')
     plottingOutputCorellations(outputs,  y='dryMass', x='totalStayDays',  saveFile=saveFolder+'stayDays_vs_dryMass')
 
 ### run a asingle variable run
@@ -493,10 +493,10 @@ if running == 'Range':
     plottingOutputCorellations(outputs, y='timeElectrolysis', x='waterGoal', xlim=[0,2000])
 ## Tornado Plots
 if running == 'Tornado':
-    tornado('dryMass', inputs, 20)  
-    # tornado('powerPerBatch', inputs, 1)
-    # tornado('totalEnergyPerKg', inputs)    
-    # tornado('totalPropellant', inputs, 100) 
-    # tornado('tfu_costCer_totalCost', inputs, 1)
+    #tornado('dryMass', inputs, 20)  
+    #tornado('excavationMass', inputs, 5)
+    #tornado('totalProcessingMass', inputs, 20)    
+    #tornado('totalPropellant', inputs, 100) 
+    tornado('tfu_costCer_totalCost', inputs, 10000)
     print('ronado')
     
