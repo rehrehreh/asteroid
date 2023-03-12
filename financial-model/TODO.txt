@@ -2,5 +2,6 @@ add subsystem bases cost multipliers (did this for some so far)
 Water filtration, water electrolysis, and cryocooler numbers are highly uncertain
 - And uncertain how they scale. Right now there is no mass scaling, only some power scaling
 Add liquifaction for cryocooler
+Add code to directly compare and plot different cases
 
 
