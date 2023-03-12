@@ -22,3 +22,5 @@ cryo cooler mass,cryocoolerMass,numerical,kg,randomize,40,50,75,100,110,1
 cryo cooler power,cryocoolerPower,numerical,kW,randomize,.5,.7,.9,1.1,1.3,2
 cryocooler research cost,cryocoolerRDCost,numerical,FY2000$k,randomize,50000,55000,65000,80000,85000,0
 cyrocooler production cost,cryocoolerTFUCost,numerical,FY2000$k,randomize,2000,3000,3500,4000,4500,0
+#
+use water filtering,waterFilter,numerical,binary,varMax,1,1,1,1,1,0

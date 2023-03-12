@@ -1,3 +1,0 @@
-Name,varName,varType,units,use,varMin,p10,p50,p90,varMax,numberDecimals,categorical
-# Any row in this sheet will be disregaurded as long as the Name variable begins with a "#"
-Base Spacecraft Power,spacecraftBasePower,numerical,kW,randomize,0.6,0.7,.8,.9,1,3

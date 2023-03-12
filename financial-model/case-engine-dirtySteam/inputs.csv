@@ -1,16 +1,17 @@
 Name,varName,varType,units,use,varMin,p10,p50,p90,varMax,numberDecimals,categorical
 # Any row in this sheet will be disregaurded as long as the Name variable begins with a "#"
-Engine ISP,engineISP,numerical,1,randomize,290,300,340,360,370,0,
+Engine ISP,engineISP,numerical,1,randomize,190,200,210,220,230,0,
 # Water Electrolysis
-use electrolysis,electrolysis,numerical,binary,varMax,0,0,1,1,1,0
+use electrolysis,electrolysis,numerical,binary,varMax,0,0,0,0,0,0
 #
 Propellant Tank Density,propTankDensity,numerical,kg/m3,randomize,1400,1600,2000,2200,2500,0,
 # Assuming monopropellant
-Number of Tanks,tankNumber,numerical,none,varMax,1,1,1,1,2,0
+Number of Tanks,tankNumber,numerical,none,varMax,1,1,1,1,1,0
 Tank Pressurant Mass Factor,tankPressurantMassFactor,numerical,none,randomize,1.1,1.12,1.2,1.27,1.28,2
-Tank Material Thickness,tankMaterialThickness,numerical,m,randomize,0.003,0.004,0.005,0.006,0.007,5,
 # the volume factor is divided by the volume^1/3 to caclulate the SA/V ratio
 Tank Volume Factor,tankVolumeFactor,numerical,m^-1,randomize,4,4.3,4.5,5,5.5,1,
-Propellant Density,propDensity,numerical,kg/m3,randomize,0.8,0.9,1,1.1,1.2,2
-#
-use water filtering,waterFilter,numerical,binary,varMax,1,1,1,1,1,0
+Propellant Density,propDensity,numerical,kg/m3,randomize,0.95,0.99,1,1.05,1.1,2
+# 
+# Cryocooler
+use cryocooler,cryocooler,numerical,binary,varMin,0,0,0,0,0,0
+use water filtering,waterFilter,numerical,binary,varmin,0,0,0,0,0,0

@@ -48,7 +48,8 @@ Processing End Temperature,processEndTemp,numerical,C,randomize,500,550,600,650,
 Processing Reaction Enthalpy,processEnthalpy,numerical,kJ/mol,randomize,900,950,1000,1100,1200,0,
 # Heating can be done via solar panels or solar thermal Heating
 # The ratio below is the amount of heating that comes from Solar Panels
-Solar Panel Heat Ratio,processSolarPanelHeatRatio,numerical,none,varMax,0,.1,.5,.9,1,1,
+# Have found that having this be 0 is the best case
+Solar Panel Heat Ratio,processSolarPanelHeatRatio,numerical,none,varMin,0,0,0,0,0,1,
 #This is the efficiency at turning electrical energy into heat
 Solar Panel Minimum Efficiency,solarPanelEfficiency,numerical,%,randomize,.8,.85,.9,.93,.95,2,
 #These values come from the SMADD
@@ -57,7 +58,7 @@ Solar Panel Performance Degradation,solarAnnualDegradation,numerical,%/year,rand
 Asteroid Max Radius from the Sun,asteroidMaxSunDistance,numerical,AU,randomize,1,1.2,1.3,1.4,1.5,2,
 Earth Solar Radiation,earthSolarRadiation,numerical,W/m^2,p10,1360.8,1360.8,1360.8,1360.8,1360.8,1,
 Solar Thermal Minimum Efficiency,solarThermalEfficiency,numerical,%,randomize,0.4,0.5,0.6,0.7,0.8,2,
-Solar Thermal Energy Density,solarThermalEnergyDensity,numerical,kW/kg,randomize,2,3,4,5,6,1,
+Solar Thermal Energy Density,solarThermalEnergyDensity,numerical,kW/kg,randomize,.5,1.5,2,4,7,1,
 # the volume factor is divided by the volume^1/3 to caclulate the SA/V ratio
 Processing Volume Factor,processVolumeFactor,numerical,m^-1,randomize,4,4.3,4.5,5,5.5,1,
 "# Processing System Mass Factor,processMassFactor,numerical,none,randomize,1.1,1.12,1.2,1.3,1.35,2,"
@@ -67,14 +68,20 @@ Processing Material Thickness,processMaterialThickness,numerical,m,randomize,0.0
 #
 #
 # Water Electrolysis
-use electrolysis,electrolysis,numerical,binary,varMax,0,0,1,1,1,0
+use electrolysis,electrolysis,numerical,binary,varMin,0,0,0,0,1,0
 electrolysis energy for hydrogen,elecHydrogenEnergy,numerical,kWh/kg,randomize,45,50,53,55,58,1
 electrolysis power,elecPower,numerical,kW,randomize,0.7,0.9,1,1.2,1.3,2
 electrolysis mass,elecMass,numerical,kg,randomize,20,25,35,40,45,1
 #
 #
+# Water Filtering
+use water filtering,waterFilter,numerical,binary,varMax,0,1,1,1,1,0
+filter Mass,waterFilterMass,numerical,kg,randomize,30,40,50,60,70,1
+filter Power,waterFilterPower,numerical,kW,randomize,.8,1,1.1,1.2,1.3,1
+water filter loss,waterFilterLoss,numerical,ratio,randomize,0.04,0.06,0.08,0.09,0.1,3
+#
 # cryocooler
-use cryocooler,cryocooler,numerical,binary,varMin,0,0,0,1,1,0
+use cryocooler,cryocooler,numerical,binary,varMin,0,0,0,0,1,0
 cryo cooler mass,cryocoolerMass,numerical,kg,randomize,40,50,75,100,110,1
 cryo cooler power,cryocoolerPower,numerical,kW,randomize,.5,.7,.9,1.1,1.3,2
 cryocooler research cost,cryocoolerRDCost,numerical,FY2000$k,randomize,50000,55000,65000,80000,85000,0
@@ -82,7 +89,7 @@ cyrocooler production cost,cryocoolerTFUCost,numerical,FY2000$k,randomize,2000,3
 #
 #
 # Orbital consideration
-Engine ISP,engineISP,numerical,1,randomize,290,300,340,360,370,0,
+Engine ISP,engineISP,numerical,1,randomize,200,300,350,400,500,0,
 DeltaV from GTO to Asteroid,deltaVtoAsteroid,numerical,km/s2,randomize,1,2,2.5,2.6,3,2,
 DeltaV from Asteroid to EML1,deltaVtoEML1,numerical,km/s2,randomize,1,2,2.5,2.6,3,2,
 # This is the ratio amount of return propellant we plan to harvest form the asteroid
@@ -147,3 +154,8 @@ cerProgramA1,cerTFUProgramA1,numerical,none,randomize,0.2,0.3,0.341,0.4,0.5,3,
 cerTRLFactor,cerTFUTRLFactor,numerical,none,randomize,1.1,1.15,1.2,1.23,1.3,2,
 cerTfuEPSA1,cerTfuEPSA1,numerical,none,randomize,95,105,112,120,130,1
 cerTfuEPSE1,cerTfuEPSE1,numerical,none,randomize,0.69,0.72,0.763,0.79,0.81,3
+#
+#
+# Cost metrics
+launch price,launchPrice,numerical,k$,randomize,6,9,15,20,25,1
+number of round trips,roundTrips,numerical,trips,randomize,1,3,5,6,7,0
