@@ -6,7 +6,7 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 from prop_calc import calculatePropellant
 
-global cases
+global cases, saveFolder
 
 
 def readInputs(cases):
@@ -141,7 +141,8 @@ def processingSystemMass(var):
     return
 
 def spacecraftPowerCalculation(var):
-    var['baseSolarPanelMass'] = var['spacecraftBasePower'] * var['solarPanelEnergyDensity'] / (1 / var['asteroidMaxSunDistance']**2) / (1-var['solarAnnualDegradation']/100)**(var['designYears'])
+    var['baseSolarPanelMass'] = (var['spacecraftBasePower'] + var['cryocoolerPower'] * var['cryocooler']) \
+                                 * var['solarPanelEnergyDensity'] / (1 / var['asteroidMaxSunDistance']**2) / (1-var['solarAnnualDegradation']/100)**(var['designYears'])
     var['batteryMass'] = var['spacecraftBasePower'] * 1000 *var['batteryTime'] / var['batteryDensity']
     
     ## Cost RD
@@ -220,18 +221,29 @@ def spacecraftPropulsionCalulation(var):
         totalPropellant = var['totalPropellant']
     else:
         totalPropellant = 200 #kg
-    var['propVolume'] = totalPropellant / var['propDensity']
-    var['tankSA'] = var['tankVolumeFactor'] / var['propVolume']**(1/3)
+    var['propVolume'] = totalPropellant / var['propDensity'] / var['tankNumber']
+    var['tankSA'] = var['tankVolumeFactor'] / var['propVolume']**(1/3) * var['tankNumber']
     var['massTank'] = var['tankPressurantMassFactor'] * (var['tankSA'] * var['tankMaterialThickness'] * var['propTankDensity'])
     var['massEngine'] = var['engineMass']
     return
+
+def cryocooler(var):
+    if var['cryocooler'] == 0:
+        var['cryocoolerMass'] = 0
+        var['cryocoolerPower'] = 0
+        var['cryocoolerRDCost'] = 0
+        var['cryocoolerTFUCost'] = 0
+    return 
+
+
 
 def summationVariables(var):
     var['totalPayloadMass'] = var['totalProcessingMass'] + var['excavationMass']
     var['totalStayDays'] = var['totalProcessingTime'] + var['excavationTime']
     var['dryMass'] = var['totalProcessingMass'] + var['excavationMass'] + var['baseSolarPanelMass'] +\
         var['cdhMass'] +  var['massRadiator'] + var['massMLI'] + var['massGNC'] + var['massEngine'] +\
-            var['massTank'] + var['commMass'] + var['massAtt'] + var['batteryMass'] + var['massElectrolysis']
+            var['massTank'] + var['commMass'] + var['massAtt'] + var['batteryMass'] + var['massElectrolysis'] +\
+                var['cryocoolerMass']
     var['dryMass']  = var['dryMass'] * (1 + var['structureDryMassFactor'] + var['dryMassMargin'])
     var['netProp'] = var['waterGoal'] - var['massPropToAsteroid']
     var['launchMass'] = var['dryMass'] + var['launchedPropellant']
@@ -250,6 +262,7 @@ def simOrder(var):
     spacecraftCommunicationsCalculation(var)
     spacecraftCommandAndDataHandlingCalculation(var)
     spacecraftElectroysis(var)
+    cryocooler(var)
     summationVariables(var)
     spacecraftStructureCalculation(var)
     return
@@ -293,7 +306,7 @@ def calculateTotalPropellant(var):
 
 def calculateSpacecraftCost(var):
 
-    var['rdte_costCer_spacecraft'] = var['dryMass'] * var['cerDryMassA1'] + var['costStructureRd'] + var['costPowerRd']
+    var['rdte_costCer_spacecraft'] = var['dryMass'] * var['cerDryMassA1'] + var['costStructureRd'] + var['costPowerRd'] + var['cryocoolerRDCost']
     var['rdte_costCer_iatX1'] = var['rdte_costCer_spacecraft'] 
     var['rdte_costCer_iat'] = var['cerIATA0'] + var['cerIATA1'] * var['rdte_costCer_iatX1']
     # same X1 as IAT, integration assembly and test
@@ -309,7 +322,7 @@ def calculateSpacecraftCost(var):
     var['tfu_costCer_programX1'] = var['tfu_costCer_spacecraft'] + var['tfu_costCer_iat']
     var['tfu_costCer_programLevelCostCER'] = var['cerTFUProgramA1'] * var['tfu_costCer_programX1']
     
-    var['tfu_costCer_totalCost'] = var['tfu_costCer_programLevelCostCER'] + var['tfu_costCer_iat'] + var['tfu_costCer_spacecraft'] + var['costPowerTfu']
+    var['tfu_costCer_totalCost'] = var['tfu_costCer_programLevelCostCER'] + var['tfu_costCer_iat'] + var['tfu_costCer_spacecraft'] + var['costPowerTfu'] +var['cryocoolerTFUCost']
     var['tfu_costCer_totalCost'] = var['tfu_costCer_totalCost'] * var['cerTFUTRLFactor']
     
     var['totalCost'] = var['tfu_costCer_totalCost'] + var['rdte_costCer_totalCost']
@@ -399,8 +412,8 @@ def tornado(outputVar, inputs, maxEffect=0, saveFile=None, maxRound=None):
     ax.set_xlabel(f'Change to {outputVar}')
     medianVal = str(sensitivities['p50'].median())
     ax.set_title(f'Base {outputVar} is {medianVal}')
-    if saveFile != None:
-        plt.savefig(saveFile)
+    if saveFile == True:
+        plt.savefig(saveFolder + f'tornado_{outputVar}.png')
     return
 
 def plottingOutputCorellations(outputs, x, y, ylim=None, xlim=None, saveFile=None):
@@ -413,8 +426,8 @@ def plottingOutputCorellations(outputs, x, y, ylim=None, xlim=None, saveFile=Non
     if xlim!=None:
         ax.set_xlim(xlim)
     # ax.plot(np.unique(outputs[x]), np.poly1d(np.polyfit(outputs[x], outputs[y], 1))(np.unique(outputs[x])), color='r')
-    if saveFile!=None:
-        plt.savefig(saveFile)
+    if saveFile==True:
+        plt.savefig(saveFolder + f'correlation_{x}_vs_{y}.png')
     return
 
 def singleVariableRange(inputs,inputVar,varRangeMin,varRangeMax,factor=1):
@@ -475,28 +488,30 @@ if running == 'MonteCarlo':
     pVals.to_csv('outputs\outputs_to_joe.csv', index=False)
     
     
-    plottingOutputCorellations(outputs, y='excavationMass', x='waterPercent')
-    plottingOutputCorellations(outputs,  y='dryMass', x='totalStayDays',  saveFile=saveFolder+'stayDays_vs_dryMass')
+    # plottingOutputCorellations(outputs, y='excavationMass', x='waterPercent')
+    plottingOutputCorellations(outputs,  y='netProp', x='dryMass',  saveFile=True)
 
 ### run a asingle variable run
 if running == 'Range':
-    outputs = singleVariableRange(inputs,'waterGoal', 1, 1000, .1)
+    maxRange  = 2000
+    outputs = singleVariableRange(inputs,'waterGoal', 1, maxRange, .1)
     # plottingOutputCorellations(outputs, y='excavationMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'exMass_vs_waterGoal')
     # plottingOutputCorellations(outputs, y='powerPerBatch', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'powerPerBatch_vs_waterGoal')
     # plottingOutputCorellations(outputs, y='totalProcessingMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processMass_vs_waterGoal')
     # plottingOutputCorellations(outputs, y='totalProcessingTime', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'processTime_vs_waterGoal')
-    plottingOutputCorellations(outputs, y='dryMass', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'dryMass_vs_waterGoal')
-    plottingOutputCorellations(outputs, y='netProp', x='waterGoal', xlim=[0,2000], saveFile=saveFolder+'netProp_vs_waterGoal')
-    plottingOutputCorellations(outputs, y='percentPropSold', x='waterGoal', xlim=[0,2000], ylim=[-1,1], saveFile=saveFolder+'percentProp_vs_waterGoal')
-    plottingOutputCorellations(outputs, y='rdte_costCer_totalCost', x='waterGoal', xlim=[0,2000],  saveFile=saveFolder+'rtd_Cost_vs_waterGoal')
-    plottingOutputCorellations(outputs, y='tfu_costCer_totalCost', x='waterGoal', xlim=[0,2000],  saveFile=saveFolder+'tfu_Cost_vs_waterGoal')
-    plottingOutputCorellations(outputs, y='timeElectrolysis', x='waterGoal', xlim=[0,2000])
+    plottingOutputCorellations(outputs, y='dryMass', x='waterGoal', xlim=[0,maxRange], saveFile=True)
+    plottingOutputCorellations(outputs, y='netProp', x='waterGoal', xlim=[0,maxRange], saveFile=True)
+    plottingOutputCorellations(outputs, y='percentPropSold', x='waterGoal', xlim=[0,maxRange], ylim=[-1,1], saveFile=True)
+    plottingOutputCorellations(outputs, y='rdte_costCer_totalCost', x='waterGoal', xlim=[0,maxRange],  saveFile=True)
+    plottingOutputCorellations(outputs, y='tfu_costCer_totalCost', x='waterGoal', xlim=[0,maxRange],  saveFile=True)
+    plottingOutputCorellations(outputs, y='timeElectrolysis', x='waterGoal', xlim=[0,maxRange], saveFile=True)
+
 ## Tornado Plots
 if running == 'Tornado':
     #tornado('dryMass', inputs, 20)  
     #tornado('excavationMass', inputs, 5)
     #tornado('totalProcessingMass', inputs, 20)    
-    #tornado('totalPropellant', inputs, 100) 
-    tornado('tfu_costCer_totalCost', inputs, 10000)
-    print('ronado')
+    tornado('netProp', inputs, 50)
+    tornado('tfu_costCer_totalCost', inputs, 5000)
+
     
