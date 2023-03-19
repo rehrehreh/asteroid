@@ -3,3 +3,4 @@ Name,varName,varType,units,use,varMin,p10,p50,p90,varMax,numberDecimals,categori
 Solar Panel Heat Ratio,processSolarPanelHeatRatio,numerical,none,varMax,0,0,0,0,0,0,
 Processing Time,processTime,numerical,days/batch,randomize,1,2,3,4,5,1,
 Processing Number of Batches,processNumBatch,numerical,num,randomize,3,4,5,6,7,1
+number of round trips,roundTrips,numerical,trips,randomize,1,1,1,1,1,0

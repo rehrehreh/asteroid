@@ -14,4 +14,4 @@ Propellant Density,propDensity,numerical,kg/m3,randomize,0.95,0.99,1,1.05,1.1,2
 # 
 # Cryocooler
 use cryocooler,cryocooler,numerical,binary,varMin,0,0,0,0,0,0
-use water filtering,waterFilter,numerical,binary,varmin,0,0,0,0,0,0
+use water filtering,waterFilter,numerical,binary,varMin,0,0,0,0,0,0

@@ -352,8 +352,10 @@ def calculateSpacecraftCost(var):
 def costMetrics(var):
     var['launchCost'] = (var['dryMass'] + var['launchedPropellant'])*var['launchPrice']
     var['costLaunchAndTFU'] = var['launchCost'] + var['tfu_costCer_totalCost']
+    var['costLaunchTotal'] = var['totalCost'] + var['launchCost']
     var['soldProp'] = (var['roundTrips']-1)*var['netProp'] + var['waterGoal']
     var['recoverySalePrice'] = var['costLaunchAndTFU'] / var['soldProp']
+    var['recoverySalePriceWithRD'] = var['costLaunchTotal'] / var['soldProp']
     return
 
 
@@ -490,7 +492,7 @@ def main(inputs, running):
     ## Run a monte Carlo
     if running == 'MonteCarlo':
         outputs = pd.DataFrame()
-        numTrials = 1
+        numTrials = 1000
         for trial in range(numTrials):
             var = defineInputData(inputs)
             runSim(var)
@@ -527,6 +529,7 @@ def main(inputs, running):
         #tornado('totalProcessingMass', inputs, 20)    
         # tornado('netProp', inputs, 50, saveFile=True)
         tornado('recoverySalePrice',inputs,10,saveFile=True)
+        tornado('recoverySalePriceWithRD',inputs,40,saveFile=True)
         # tornado('tfu_costCer_totalCost', inputs, 5000, saveFile=True)
     return
 
@@ -541,6 +544,6 @@ if __name__ =='__main__':
     
     
     # this is the type of analysis to run
-    running = 'Range'
+    running = 'Tornado'
     saveFolder= cwd + f'\\figures\\{running}\\'
     main(inputs, running)
